@@ -7,9 +7,12 @@ import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from components.batfish import Batfish
-from components.functions import get_bgp_edges,get_bgp_nodes,getnodes,getparents,getedges,create_traceroute_graph,create_graph
+from components.functions import get_bgp_edges, get_bgp_nodes, getnodes, \
+    getparents, getedges, create_traceroute_graph, create_graph, save_file, \
+    delete_old_files
 from ttp import ttp
 from app import app
+import dash_bootstrap_components as dbc
 
 trace_template = """
 {{ STEP }}. node: {{ NODE }}
@@ -18,6 +21,7 @@ trace_template = """
   TRANSMITTED({{ TRANSMITTED }})
   ACCEPTED({{ ACCEPTED }})
 """
+
 
 
 @app.callback(
@@ -55,6 +59,19 @@ def batfish_host_toggle_collapse(n, submit_button, is_open):
     return is_open
 
 @app.callback(
+    Output("batfish-network-output", "children"),
+    [Input("create-network-form", "value"),
+     Input("create_network_submit_button", "n_clicks")],
+    [State("batfish_host_input", "value")],
+)
+def create_network(network_name,submit,batfish_host):
+    if not submit:
+        raise PreventUpdate
+    batfish = Batfish(batfish_host)
+    batfish.set_network(network_name)
+    return 0
+
+@app.callback(
     Output("create-network-collapse", "is_open"),
     [Input("create-network-button", "n_clicks"),
      Input("create_network_submit_button", "n_clicks")],
@@ -76,10 +93,25 @@ def set_batfish_host(value):
         raise PreventUpdate
     return value
 
+
+###################### Delete Network ###############################
+@app.callback(Output('delete-success', 'children'),
+                   [Input('delete_network_submit_button', 'n_clicks'),
+                    Input('delete_network_dropdown', 'value')],
+                   [State("batfish_host_input", "value")], )
+def delete_network(submit, delete_network, batfish_host):
+    if not submit:
+        raise PreventUpdate
+    batfish = Batfish(batfish_host)
+    batfish.delete_network(delete_network)
+
+
+
 @app.callback(
 
     [Output("select-network-snapshot-modal", "children"),
-     Output("select-network-div", "children")],
+     Output("select-network-div", "children"),
+     Output("create-network-collapse", "children")],
     [Input("set_batfish_host_submit_button", "n_clicks"),
      Input("batfish_host_input", "value")]
 )
@@ -100,11 +132,56 @@ def get_batfish_networks(n, value):
             id="modal-select-network-button",
             placeholder='Select a Network',
             style={'margin': '5px',
-                   'width': '150px'},
+                   'width': '150px',
+                   },
             options=options,
             value=None
         )
-        return dropdown2, dropdown1
+        create_delete_network_children = [
+
+            dbc.Form(
+                [
+                    dbc.FormGroup(
+                        [
+                            dbc.Input(
+                                id="create-network-form",
+                                value="",
+                                placeholder="New Network Name"),
+                        ],
+                        className="mr-3",
+                    ),
+                    dbc.Button("Submit",
+                               id="create_network_submit_button",
+                               color="dark",
+                               outline=True,
+                               size="sm",
+                               style=dict(
+                                   height="25px",
+                               )),
+                    dcc.Dropdown(
+                        id="delete_network_dropdown",
+                        placeholder='Select a Network',
+                        style={'margin': '5px',
+                               'width': '150px'},
+                        options=options,
+                        value=None
+                    ),
+                    dbc.Button("Delete",
+                               id="delete_network_submit_button",
+                               color="dark",
+                               outline=True,
+                               size="sm",
+                               style=dict(
+                                   margin="5px",
+                                   height="25px",
+                               )),
+                    html.H1(id="delete-success", style={"display":"none"})
+
+                ],
+                inline=True,
+            )
+        ]
+        return dropdown2, dropdown1, create_delete_network_children
 
 @app.callback(
     Output("memory-output", "data"),
@@ -208,31 +285,104 @@ def create_snapshot_modal(n, is_open):
     return is_open
 
 @app.callback(Output('output-data-upload', 'children'),
-                   [Input('config-upload-data', 'contents')],
-                   [State("config-upload-data", "filename")], )
-def create_snapshot_modal(upload_content, filenames):
+               [Input('config-upload-data', 'contents'),
+                Input('modal-select-network-button', 'value'),
+                Input('create_snapshot_submit_button', 'n_clicks'),
+                Input('create-snapshot-name', 'value')],
+               [State("config-upload-data", "filename"),
+                State("batfish_host_input", "value")], )
+def create_snapshot_modal(upload_content,batfish_network, submit,snapshot_name, filenames, batfish_host, ):
     if filenames is None:
         raise PreventUpdate
+    if submit:
+        for name, data in zip(filenames, upload_content):
+            save_file(name, data)
+        batfish = Batfish(batfish_host)
+        batfish.set_network(batfish_network)
+        batfish.init_snapshot(snapshot_name)
+        delete_old_files()
     children = html.Div([
         html.Ul([html.Li(x) for x in filenames]
                 )
     ])
     return children
 
+@app.callback(
+    Output("delete_snapshot_hidden", "children"),
+    [Input("modal-select-network-button", "value"),
+     Input("delete_snapshot_submit_button", "n_clicks"),
+     Input("delete_snapshot_dropdown", "value")],
+    [State("batfish_host_input", "value")]
+)
+def delete_snapshot(batfish_network,submit, delete_snapshot, batfish_host):
+    if not submit:
+        raise PreventUpdate
+    print("yay")
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.delete_snapshot(delete_snapshot)
+
+
+
+@app.callback(
+    Output("delete-snapshot-dropdown-div", "children"),
+    [Input("modal-select-network-button", "value")],
+    [State("batfish_host_input", "value")]
+)
+def delete_snapshot_div(network_value, host_value):
+    if not network_value:
+        raise PreventUpdate
+    batfish = Batfish(host_value)
+    batfish.set_network(network_value)
+    options = [{'label': snapshot, 'value': snapshot} for snapshot in
+               batfish.get_existing_snapshots()]
+    children = [
+        dbc.Form(
+            [
+                dcc.Dropdown(
+                    id="delete_snapshot_dropdown",
+                    placeholder='Delete Snapshot',
+                    style={'margin': '5px',
+                           'width': '150px',
+                           },
+                    options=options,
+                    value=None
+
+                ),
+                dbc.Button("Delete",
+                           id="delete_snapshot_submit_button",
+                           color="dark",
+                           outline=True,
+                           size="sm",
+                           style=dict(
+                               margin="5px",
+                               height="25px",
+                           )),
+                html.P(id='delete_snapshot_hidden', style={"display": "none"})
+            ],
+            inline=True,
+        ),
+
+    ]
+    return children
+
+
+################### Ask a Question ##################################
 @app.callback(Output('ask-a-question-modal', 'is_open'),
                    [Input('ask-question-button', 'n_clicks')],
                    [State("ask-a-question-modal", "is_open")], )
-def create_snapshot_modal(n, is_open):
+def open_ask_a_question_modal(n, is_open):
     if n:
         return not is_open
     return is_open
+
 
 @app.callback(Output('ask-a-question-table', 'children'),
                    [Input('select-question-button', 'value')],
                    [State("batfish_host_input", "value"),
                     State("select-network-button", "value"),
                     State("select-snapshot-button", "value")], )
-def create_snapshot_modal(question, host_value, network_value,
+def ask_a_question_modal_table(question, host_value, network_value,
                           snapshot_value):
     if question is None:
         raise PreventUpdate

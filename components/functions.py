@@ -1,3 +1,5 @@
+import base64
+import os
 import re
 import dash_cytoscape as cyto
 
@@ -200,3 +202,20 @@ def create_traceroute_graph(elements):
         ),
     ]
     return children
+
+SNAPSHOT_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+
+def save_file(name, content):
+    data = content.encode("utf8").split(b";base64,")[1]
+    with open(os.path.join(SNAPSHOT_UPLOAD_DIRECTORY, name), "wb") as fp:
+        fp.write(base64.decodebytes(data))
+
+def delete_old_files():
+    try:
+        for subdir, dirs, files in os.walk(SNAPSHOT_UPLOAD_DIRECTORY):
+            for file in files:
+                filePath = os.path.join(subdir, file)
+                os.unlink(filePath)
+
+    except Exception as error:
+        print(error)

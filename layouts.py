@@ -80,7 +80,7 @@ main_page_layout = html.Div(id='main-page', children=[
                 ),
                 html.Div([
                     html.Button(
-                        "Create Network",
+                        "Create/Delete Network",
                         id="create-network-button",
                         style={'margin': '5px'}
                     ),
@@ -92,7 +92,7 @@ main_page_layout = html.Div(id='main-page', children=[
                 ),
                 html.Div([
                     html.Button(
-                        "Create Snapshot",
+                        "Create/Delete Snapshot",
                         id="create-snapshot-button",
                         style={'margin': '5px'}
                     ),
@@ -184,29 +184,7 @@ main_page_layout = html.Div(id='main-page', children=[
                         dbc.Collapse(
                             dbc.Card(
                                 dbc.CardBody(
-                                    children=[
-                                        dbc.Form(
-                                            [
-                                                dbc.FormGroup(
-                                                    [
-                                                        dbc.Input(
-                                                            id="create-network-form",
-                                                            placeholder="New Network Name"),
-                                                    ],
-                                                    className="mr-3",
-                                                ),
-                                                dbc.Button("Submit",
-                                                           id="create_network_submit_button",
-                                                           color="dark",
-                                                           outline=True,
-                                                           size="sm",
-                                                           style=dict(
-                                                               height="25px",
-                                                           )),
-                                            ],
-                                            inline=True,
-                                        )
-                                    ]
+                                    children=[]
                                 )
                             ),
                             id="create-network-collapse",
@@ -280,7 +258,8 @@ main_page_layout = html.Div(id='main-page', children=[
             children=[
                 html.P(id='cytoscape-mouseoverNodeData-output'),
                 html.P(id='cytoscape-mouseoverEdgeData-output'),
-                html.P(id='batfish-host-output')
+                html.P(id='batfish-host-output'),
+                html.P(id='batfish-network-output', style={"display":"none"})
             ]
         ),
 
@@ -294,13 +273,24 @@ main_page_layout = html.Div(id='main-page', children=[
                         dbc.ModalHeader("Create Snapshot!"),
                         dbc.ModalBody(
                             children=[
+                                html.Div(
+                                    style= dict(
+                                        display="flex"
+                                    )
+                                ),
                                 html.Div([],
                                          id='select-network-snapshot-modal',
                                          style=dict(
-                                             display='table-cell',
-                                             verticalAlign="middle",
+                                             flex="1"
                                          )
                                          ),
+                                html.Div([],
+                                         id='delete-snapshot-dropdown-div',
+                                         style=dict(
+                                            flex="1"
+                                         )
+                                         ),
+
                                 html.Div([
                                     dcc.Upload(
                                         id='config-upload-data',
@@ -327,6 +317,16 @@ main_page_layout = html.Div(id='main-page', children=[
 
                         ),
                         dbc.ModalFooter(
+                            children= [
+                                    dbc.FormGroup(
+                                        [
+                                        dbc.Input(
+                                            id="create-snapshot-name",
+                                            value="",
+                                            placeholder="New Snapshot Name"),
+                                        ],
+                                            className="mr-3",
+                                    ),
                             dbc.Button("Submit",
                                        id="create_snapshot_submit_button",
                                        color="dark",
@@ -334,6 +334,8 @@ main_page_layout = html.Div(id='main-page', children=[
                                        style=dict(
                                            height="25px",
                                        )),
+                            ],
+
                         ),
                     ]
                 )
@@ -418,7 +420,6 @@ main_page_layout = html.Div(id='main-page', children=[
                                             style=dict(
                                                 margin_top="10px",
                                             )
-
                                         ),
                                         html.Div([
                                             html.Label(

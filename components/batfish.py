@@ -20,6 +20,11 @@ class Batfish():
         bf_session.host = batfish_host
         load_questions()
 
+    def delete_network(self, network):
+        bf_delete_network(network)
+
+    def delete_snapshot(self, snapshot):
+        bf_delete_snapshot(snapshot)
 
     def set_snapshot(self, snapshot):
         bf_set_snapshot(snapshot)
@@ -37,23 +42,24 @@ class Batfish():
             snapshotlist = ["None"]
         return snapshotlist
 
-    def init_snapshot(self, snapshot_dir, snapshot_name, overwrite=True):
-        bf_init_snapshot(snapshot_dir, name=snapshot_name,
+    def init_snapshot(self,snapshot_name, overwrite=True):
+        snapshot_dir = "assets/snapshot_holder/"
+        bf_init_snapshot(snapshot_dir, name=str(snapshot_name),
                          overwrite=overwrite)
-
 
     def get_info(self, command):
         execute = 'bfq.' + command + '().answer().frame()'
         result = eval(execute)
         return result
-        # return result.to_html(classes=["table", "table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
 
     def get_layer3_edges(self):
         result = bfq.layer3Edges().answer().frame()
         return result
+
     def get_ospf_edges(self):
         result = bfq.ospfEdges().answer().frame()
         return result
+
     def get_bgp_edges(self):
         result = bfq.bgpEdges().answer().frame()
         return result
@@ -64,40 +70,5 @@ class Batfish():
         else:
             result = bfq.traceroute(startLocation=src, headers=HeaderConstraints(dstIps=dst)).answer().frame()
         return result
-    #
-    # def get_node_properties(self):
-    #     result = bfq.nodeProperties().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_int_properties(self):
-    #     command = 'interfaceProperties'
-    #     execute = 'bfq.' + command + '().answer().frame()'
-    #     print(execute)
-    #     result = eval(execute)
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_ospf_process_config(self):
-    #     result = bfq.ospfProcessConfiguration().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_ospf_int_config(self):
-    #     result = bfq.ospfInterfaceConfiguration().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_undefined_resources(self):
-    #     result = bfq.undefinedReferences().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_unused_structures(self):
-    #     result = bfq.unusedStructures().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_ip_owners(self):
-    #     result = bfq.ipOwners().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
-    #
-    # def get_loop_detection(self):
-    #     result = bfq.detectLoops().answer().frame()
-    #     return result.to_html(classes=["table-bordered", "table-striped", "table-hover"], table_id='batfishtable', header="true")
 
 
