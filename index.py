@@ -5,7 +5,7 @@ from app import app
 from layouts import main_page_layout, noPage
 import callbacks
 
-
+app.title = "Batfish Dashboard"
 app.layout = main_page_layout
 
 

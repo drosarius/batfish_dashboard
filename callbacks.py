@@ -317,7 +317,6 @@ def create_snapshot_modal(upload_content,batfish_network, submit,snapshot_name, 
 def delete_snapshot(batfish_network,submit, delete_snapshot, batfish_host):
     if not submit:
         raise PreventUpdate
-    print("yay")
     batfish = Batfish(batfish_host)
     batfish.set_network(batfish_network)
     batfish.delete_snapshot(delete_snapshot)
