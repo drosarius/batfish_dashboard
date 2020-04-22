@@ -494,9 +494,7 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
     traces = result.Traces[0]
     count = 0
     trace_edges = []
-    trace_dict = {}
     children = []
-    trace_list = []
 
     while count < len(traces):
         step_list = []
@@ -507,11 +505,8 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
         parser = ttp(data=str(trace), template=trace_template)
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
-        # print(parsed_results)
-        # print("Trace: " + str(count))
         for x in parsed_results:
             nodes.append(str(x["NODE"]))
-            # print(x) # Table inside collapse
         while second_edge_node_count < len(trace):
             pair = []
             first_edge_node = parsed_results[first_edge_node_count]["NODE"]
