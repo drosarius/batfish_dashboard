@@ -144,7 +144,7 @@ def create_graph(elements):
 
     return children
 
-def create_traceroute_graph(elements):
+def create_traceroute_graph(elements, stylesheet):
     children = [
         cyto.Cytoscape(
 
@@ -163,40 +163,7 @@ def create_traceroute_graph(elements):
             },
 
             elements=elements,
-            stylesheet=[
-                {
-                    'selector': 'edge',
-                    'style': {
-                        # The default curve style does not work with certain arrows
-                        # 'source-text-rotation': 'autorotate',
-                        # 'edge-text-rotation': 'autorotate',
-                        # 'target-text-rotation': 'autorotate',
-                        # 'source-label': 'data(source_label)',
-                        # 'target-label': 'data(target_label)',
-                        # 'source-text-offset': '50',
-                        # 'target-text-offset': '50',
-                        # 'text-background-opacity': 1,
-                        # 'text-background-color': '#ffffff',
-                        # 'text-background-shape': 'rectangle',
-                        # 'text-border-style': 'solid',
-                        # 'text-border-opacity': 1,
-                        # 'text-border-width': '1px',
-                        # 'text-border-color': 'darkgray',
-                        'curve-style': 'bezier'
-
-                    }
-                },
-                {
-                    'selector': 'node',
-                    'style': {
-                        # The default curve style does not work with certain arrows
-                        'label': 'data(id)',
-                        'text-outline-color': '#ffffff'
-
-                    }
-                },
-
-            ],
+            stylesheet=stylesheet,
             layout={'name': 'breadthfirst'
                     }
         ),

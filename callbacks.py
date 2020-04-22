@@ -495,7 +495,22 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
     count = 0
     trace_edges = []
     children = []
-
+    stylesheet = [
+        {
+            'selector': 'edge',
+            'style': {
+                'curve-style': 'bezier'
+            }
+        },
+        {
+            'selector': 'node',
+            'style': {
+                'label': 'data(id)',
+                'text-outline-color': '#ffffff'
+            }
+        },
+    ]
+    colors = ["red", "blue", "green", "black", "yellow", "brown", "cyan", "grey", "lime" ]
     while count < len(traces):
         step_list = []
         parent_list = []
@@ -505,12 +520,14 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
         parser = ttp(data=str(trace), template=trace_template)
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
+
         for x in parsed_results:
             nodes.append(str(x["NODE"]))
         while second_edge_node_count < len(trace):
             pair = []
             first_edge_node = parsed_results[first_edge_node_count]["NODE"]
             second_edge_node = parsed_results[second_edge_node_count]["NODE"]
+            pair.append('trace_' + str(count))
             pair.append(first_edge_node)
             pair.append(second_edge_node)
             trace_edges.append(tuple(pair))
@@ -528,8 +545,19 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
             parent_list.append(x)
         top_tree = html.Details(parent_list)
         children.append(top_tree)
+        trace_style = [{
+            'selector': 'edge.' + 'trace_' + str(count),
+            'style': {
+                'target-arrow-color': colors[0],
+                'target-arrow-shape': 'triangle',
+                'line-color': colors[0]
+            }
+        }]
         count += 1
+        del colors[0]
+        stylesheet = stylesheet + trace_style
 
+    print(stylesheet)
 
 
 
@@ -541,13 +569,14 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
     start_node = [{'data': {'id': nodes[0], 'label': nodes[0], 'parent': 'Start' }}]
     finish_node = [{'data': {'id': nodes[len(nodes) - 1 ], 'label': nodes[len(nodes) - 1], 'parent': 'Finish'}}]
     edges = [
-        {'data': {'source': source, 'target': target}}
-        for source, target, in trace_edges]
+        {'data': {'source': source, 'target': target}, 'classes':trace}
+        for trace, source, target, in trace_edges]
     nodes = [{'data': {'id': device, 'label': device}} for device in
              set(nodes)]
     all_nodes = start_node + finish_node + nodes
+    print(edges)
 
-    return create_traceroute_graph(parent + all_nodes + edges), children
+    return create_traceroute_graph(parent + all_nodes + edges, stylesheet), children
 
 
 @app.callback([Output('select-enter-location-button', 'options'),
