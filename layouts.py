@@ -404,7 +404,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                         html.Div([
                                             html.Label(
                                                 style={'margin': '5px',
-                                                       'width': '150px'},
+                                                       'width': '250px'},
                                                 children = [
                                                 "Select Source",
                                                 dcc.Dropdown(
@@ -424,7 +424,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                         html.Div([
                                             html.Label(
                                                 style={'margin': '5px',
-                                                       'width': '150px'},
+                                                       'width': '250px'},
                                                 children = [
                                                     "Select Destination",
                                                     dcc.Dropdown(
@@ -447,9 +447,30 @@ main_page_layout = html.Div(id='main-page', children=[
                                     ],
 
                                 ),
+                                html.Div(
+                                    style=dict(
+                                        display="flex"
+                                    ),
+                                    children=[
+                                        html.Div(id='traceroute-graph',
+                                                 style=dict(
+                                                     flex="1",
+                                                 ),
+                                                 ),
+                                        html.Div(id="trace-collapse",
+                                                 style=dict(
+                                                     flex="1"
+                                                 ),
+                                                 children=[
+
+                                                 ],
 
 
-                                html.Div(id='traceroute-graph'),
+                                                 ),
+                                    ],
+                                ),
+
+
                             ],
 
                         ),

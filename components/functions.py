@@ -151,7 +151,7 @@ def create_traceroute_graph(elements):
             id='traceroute-cytoscape',
 
             style={
-                "margin-top": "56px",
+                # "margin-top": "30px",
                 "margin-left": "5px",
                 'width': '700px',
                 'height': '500px',

@@ -5,7 +5,7 @@ dash-cytoscape==0.1.1
 dash-html-components==1.0.3
 dash-renderer==1.4.0
 dash-table==4.6.2
-pandas==0.25.3
+pandas==1.0.3
 plotly==4.6.0
 pybatfish==2020.2.20.414
 ttp==0.3.0

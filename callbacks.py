@@ -473,7 +473,8 @@ def get_traceroute_modal(n, is_open):
     return is_open
 
 @app.callback(
-    Output("traceroute-graph", "children"),
+    [Output("traceroute-graph", "children"),
+     Output("trace-collapse", "children")],
     [
         Input("select-enter-location-button", "value"),
         Input("select-destination-location-button", "value")
@@ -493,15 +494,24 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
     traces = result.Traces[0]
     count = 0
     trace_edges = []
+    trace_dict = {}
+    children = []
+    trace_list = []
+
     while count < len(traces):
+        step_list = []
+        parent_list = []
         first_edge_node_count = 0
         second_edge_node_count = 1
         trace = result.Traces[0][count]
         parser = ttp(data=str(trace), template=trace_template)
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
+        # print(parsed_results)
+        # print("Trace: " + str(count))
         for x in parsed_results:
-            nodes.append(x["NODE"])
+            nodes.append(str(x["NODE"]))
+            # print(x) # Table inside collapse
         while second_edge_node_count < len(trace):
             pair = []
             first_edge_node = parsed_results[first_edge_node_count]["NODE"]
@@ -511,15 +521,38 @@ def set_update_trace_graph(source, destination, host_value, network_value, snaps
             trace_edges.append(tuple(pair))
             first_edge_node_count += 1
             second_edge_node_count += 1
+        top_sum = html.Summary('Trace ' + str(count))
+        for x in parsed_results:
+            contents = ""
+            for item in x.items():
+                contents = contents + item[0] + ': ' + item[1] + '\n'
+            steps = html.Details([html.Summary('Step ' + str(x['STEP'])), html.Div(contents)])
+            step_list.append(steps)
+        parent_list.append(top_sum)
+        for x in step_list:
+            parent_list.append(x)
+        top_tree = html.Details(parent_list)
+        children.append(top_tree)
         count += 1
 
+
+
+
+
+    parent = [
+            {'data': {'id': 'Start', 'label': "Start"}},
+            {'data': {'id': 'Finish', 'label': "Finish"}}
+    ]
+    start_node = [{'data': {'id': nodes[0], 'label': nodes[0], 'parent': 'Start' }}]
+    finish_node = [{'data': {'id': nodes[len(nodes) - 1 ], 'label': nodes[len(nodes) - 1], 'parent': 'Finish'}}]
     edges = [
         {'data': {'source': source, 'target': target}}
         for source, target, in trace_edges]
-
     nodes = [{'data': {'id': device, 'label': device}} for device in
              set(nodes)]
-    return create_traceroute_graph(nodes + edges)
+    all_nodes = start_node + finish_node + nodes
+
+    return create_traceroute_graph(parent + all_nodes + edges), children
 
 
 @app.callback([Output('select-enter-location-button', 'options'),
