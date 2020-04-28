@@ -2,9 +2,10 @@ import base64
 import os
 import re
 import dash_cytoscape as cyto
-
-
-
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_html_components as html
+from ttp import ttp
 
 
 def get_bgp_nodes(batfish_df):
@@ -15,7 +16,7 @@ def get_bgp_nodes(batfish_df):
     nodes = [
         {
             'data': {'id': device, 'label': device,
-                     'parent': as_number},
+                     'parent': 'AS ' + as_number},
         }
         for device, as_number in list(set(all_nodes))
     ]
@@ -49,9 +50,9 @@ def getparents(batfish_df):
         batfish_df['Remote_AS_Number'])
     parent_nodes = [
         {
-            'data': {'id': device, 'label': device},
+            'data': {'id': 'AS ' + asn, 'label': 'AS ' + asn},
         }
-        for device in list(set(as_numbers))
+        for asn in list(set(as_numbers))
     ]
     return parent_nodes
 
@@ -72,7 +73,9 @@ def getedges(batfish_df):
                     x_test[1] = re.sub("\..*", ".subints", x_test[1])
                     x_test[1] = re.sub("^Ethernet", "eth", x_test[1])
                     x_test[1] = re.sub("^TenGigabitEthernet", "Ten", x_test[1])
+                    x_test[1] = re.sub("^GigabitEthernet", "Ge", x_test[1])
                     x_test[1] = re.sub("^port-channel", "po", x_test[1])
+                    x_test[1] = re.sub("^Port-Channel", "po", x_test[1])
                     test += x_test
                 new_new_edges.append(test)
     new_new_edges = list(set(tuple(sub) for sub in new_new_edges))
@@ -170,6 +173,162 @@ def create_traceroute_graph(elements, stylesheet):
     ]
     return children
 
+
+def get_elements(nodes, trace_edges):
+    parent = [
+        {'data': {'id': 'Start', 'label': "Start"}},
+        {'data': {'id': 'Finish', 'label': "Finish"}}
+    ]
+    start_node = [
+        {'data': {'id': nodes[0], 'label': nodes[0], 'parent': 'Start'}}]
+    finish_node = [{'data': {'id': nodes[len(nodes) - 1],
+                             'label': nodes[len(nodes) - 1],
+                             'parent': 'Finish'}}]
+    edges = [
+        {'data': {'source': source, 'target': target}, 'classes': trace}
+        for trace, source, target, in trace_edges]
+    nodes = [{'data': {'id': device, 'label': device}} for device in
+             set(nodes)]
+    all_nodes = start_node + finish_node + nodes
+
+    return parent + all_nodes + edges
+
+flow_template = """
+start={{ START }} [{{ SRC }}->{{ DST }} {{ PROTOCOL }} length={{ LENGTH }}]
+"""
+def get_flow_meta_data(flow_data):
+
+    parser = ttp(data=str(flow_data[0]), template=flow_template)
+    parser.parse()
+    flow_parsed_results = parser.result(format='raw')[0][0]
+    flow_meta_data = ""
+    for item in flow_parsed_results.items():
+        flow_meta_data = flow_meta_data + item[0] + ': ' + item[1] + '\n'
+    return flow_meta_data
+
+def get_flow_details(result_flow, direction):
+    flow = html.Details(
+        [html.Summary(direction),
+         html.Div(dcc.Textarea(
+             value=get_flow_meta_data(result_flow),
+             readOnly=True,
+             style={'width': '200px', 'height': 120, 'margin-left': '5px'},
+         ))])
+    return flow
+
+trace_template = """
+{{ STEP }}. node: {{ NODE }}
+  RECEIVED({{ RECEIVED }})
+  FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
+  TRANSMITTED({{ TRANSMITTED }})
+  ACCEPTED({{ ACCEPTED }})
+"""
+def get_traceroute_details(direction, result, bidir):
+
+    nodes = []
+    count = 0
+    trace_edges = []
+    children = []
+    if bidir:
+        if direction == "forward":
+            traces = result.Forward_Traces[0]
+            children.append(get_flow_details(result.Forward_Flow, "Forward Flow"))
+        else:
+            traces = result.Reverse_Traces[0]
+            children.append(get_flow_details(result.Reverse_Flow, "Reverse Flow"))
+    else:
+        traces = result.Traces[0]
+        children.append(get_flow_details(result.Flow, "Flow"))
+
+
+
+    stylesheet = [
+        {
+            'selector': 'edge',
+            'style': {
+                'curve-style': 'bezier'
+            }
+        },
+        {
+            'selector': 'node',
+            'style': {
+                'label': 'data(id)',
+                'text-outline-color': '#ffffff'
+            }
+        },
+    ]
+
+    colors = ["red", "blue", "green", "black", "yellow", "brown", "cyan",
+              "grey", "lime", "purple",
+              "violet", "teal", "silver", "orange", "pink"]
+    while count < len(traces):
+        step_list = []
+        parent_list = []
+        step_dict = {}
+        first_edge_node_count = 0
+        second_edge_node_count = 1
+        if bidir:
+            if direction == "forward":
+                trace = result.Forward_Traces[0][count]
+            else:
+                trace = result.Reverse_Traces[0][count]
+        else:
+            trace = result.Traces[0][count]
+
+        parser = ttp(data=str(trace), template=trace_template)
+        parser.parse()
+        parsed_results = parser.result(format='raw')[0][0]
+
+        for node in parsed_results:
+            nodes.append(str(node["NODE"]))
+
+        while second_edge_node_count < len(trace):
+            pair = []
+            trace_number = 'Trace ' + str(count)
+            first_edge_node = parsed_results[first_edge_node_count]["NODE"]
+            second_edge_node = parsed_results[second_edge_node_count]["NODE"]
+            pair.append('trace_' + str(count))
+            pair.append(first_edge_node)
+            pair.append(second_edge_node)
+            trace_edges.append(tuple(pair))
+            first_edge_node_count += 1
+            second_edge_node_count += 1
+        top_sum = html.Summary(trace_number, style=dict(color=colors[0]))
+        for data in parsed_results:
+            contents = ""
+            for item in data.items():
+                contents = contents + item[0] + ': ' + item[1] + '\n'
+            step_dict['Step ' + str(data['STEP'])] = contents
+            steps = html.Details([html.Summary('Step ' + str(data['STEP']),
+                                               className="trace_steps"),
+                                  html.Div(dcc.Textarea(
+                                      value=contents,
+                                      readOnly=True,
+                                      style={'width': '200px', 'height': 120,
+                                             'margin-left': '5px'},
+                                  ))])
+            step_list.append(steps)
+
+        parent_list.append(top_sum)
+        for data in step_list:
+            parent_list.append(data)
+        top_tree = html.Details(parent_list)
+        children.append(top_tree)
+        trace_style = [{
+            'selector': 'edge.' + 'trace_' + str(count),
+            'style': {
+                'target-arrow-color': colors[0],
+                'target-arrow-shape': 'triangle',
+                'line-color': colors[0]
+            }
+        }]
+        count += 1
+        del colors[0]
+        stylesheet = stylesheet + trace_style
+
+    return [create_traceroute_graph(get_elements(nodes, trace_edges),
+                                   stylesheet), children]
+
 SNAPSHOT_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 
 def save_file(name, content):
@@ -186,3 +345,56 @@ def delete_old_files():
 
     except Exception as error:
         print(error)
+
+
+
+################## Need to figure out dynamic callbacks. Pattern matching not working#########
+def collapsible_traces(trace, step_dict, count):
+    card = []
+    for step, contents in step_dict.items():
+        card_body = [dbc.CardHeader(
+                            html.H2(
+                                dbc.Button(
+                                    step,
+                                    color="link",
+                                    id=step,
+                                ),
+                            ),
+                        ),
+                        dbc.Collapse(
+                            dbc.CardBody(
+                                dcc.Textarea(
+                                        value=contents,
+                                        readOnly=True,
+                                        style={'width': '100%', 'height': 120},
+                                        ),),
+                            id=step + "_contents",
+                        )]
+        card = card + card_body
+
+    return dbc.Card(
+                    [
+                        dbc.CardHeader(
+                            html.H2(
+                                html.Button(
+                                    trace,
+                                    id={
+                                        'type': 'Trace_Button',
+                                        'index': count
+                                    },
+                                )
+                            )
+                        ),
+                        dbc.Collapse(
+
+                            dbc.Card(card),
+                            id={
+                               'type': 'Trace',
+                               'index': count
+                           },
+                        ),
+                    ]
+                )
+
+
+

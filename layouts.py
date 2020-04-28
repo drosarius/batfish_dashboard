@@ -1,6 +1,7 @@
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 
 
 batfish_questions = ["ipOwners",
@@ -259,7 +260,8 @@ main_page_layout = html.Div(id='main-page', children=[
                 html.P(id='cytoscape-mouseoverNodeData-output'),
                 html.P(id='cytoscape-mouseoverEdgeData-output'),
                 html.P(id='batfish-host-output'),
-                html.P(id='batfish-network-output', style={"display":"none"})
+                html.P(id='batfish-network-output', style={"display":"none"}),
+                html.P(id='num_of_traces', style={"display":"none"}),
             ]
         ),
 
@@ -444,6 +446,31 @@ main_page_layout = html.Div(id='main-page', children=[
                                             )
 
                                         ),
+                                        html.Div(
+                                            className="bidir_switch",
+                                            children=[
+                                            daq.BooleanSwitch(
+                                                id='traceroute_bidir_switch',
+                                                on=False,
+                                                label="Bidir",
+                                                labelPosition="left",
+                                                style=dict(
+                                                margin_left="10px"
+                                            ),
+                                            ),
+
+                                        ]),
+
+
+
+                                    dbc.Button("Submit",
+                                       id="traceroute_submit_button",
+                                       color="dark",
+                                       outline=True,
+                                       style=dict(
+                                           height="25px",
+                                           margin_top="10px",
+                                       )),
                                     ],
 
                                 ),
@@ -457,6 +484,11 @@ main_page_layout = html.Div(id='main-page', children=[
                                                      flex="1",
                                                  ),
                                                  ),
+                                        html.Div(id='reverse_traceroute_graph',
+                                                 style=dict(
+                                                     flex="2",
+                                                 ),
+                                                 ),
                                         html.Div(id="trace-collapse",
                                                  style=dict(
                                                      flex="1"
@@ -464,8 +496,14 @@ main_page_layout = html.Div(id='main-page', children=[
                                                  children=[
 
                                                  ],
+                                                 ),
+                                        html.Div(id="reverse_trace_collapse",
+                                                 style=dict(
+                                                     flex="2"
+                                                 ),
+                                                 children=[
 
-
+                                                 ],
                                                  ),
                                     ],
                                 ),

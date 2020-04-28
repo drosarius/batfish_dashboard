@@ -1,15 +1,18 @@
 import json
 import time
+import dash_daq as daq
+import dash
 import dash_table
 import dash_html_components as html
 import pandas as pd
 import dash_core_components as dcc
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH, ALL
 from dash.exceptions import PreventUpdate
 from components.batfish import Batfish
 from components.functions import get_bgp_edges, get_bgp_nodes, getnodes, \
     getparents, getedges, create_traceroute_graph, create_graph, save_file, \
-    delete_old_files
+    delete_old_files, collapsible_traces, get_elements, get_flow_meta_data, \
+    get_traceroute_details
 from ttp import ttp
 from app import app
 import dash_bootstrap_components as dbc
@@ -20,6 +23,10 @@ trace_template = """
   FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
   TRANSMITTED({{ TRANSMITTED }})
   ACCEPTED({{ ACCEPTED }})
+"""
+
+flow_template = """
+start={{ START }} [{{ SRC }}->{{ DST }} {{ PROTOCOL }} length={{ LENGTH }}]
 """
 
 
@@ -474,109 +481,52 @@ def get_traceroute_modal(n, is_open):
 
 @app.callback(
     [Output("traceroute-graph", "children"),
-     Output("trace-collapse", "children")],
+     Output("trace-collapse", "children"),
+     Output("reverse_traceroute_graph", "children"),
+     Output("reverse_trace_collapse", "children")
+     ],
     [
         Input("select-enter-location-button", "value"),
-        Input("select-destination-location-button", "value")
+        Input("select-destination-location-button", "value"),
+        Input("traceroute_submit_button", "n_clicks"),
+        Input("traceroute_bidir_switch", "on")
+
     ],
     [State("batfish_host_input", "value"),
      State("select-network-button", "value"),
      State("select-snapshot-button", "value")],
 )
-def set_update_trace_graph(source, destination, host_value, network_value, snapshot_value):
-    if not destination:
+def set_update_trace_graph(source,
+                           destination,
+                           submit,
+                           bidir,
+                           host_value,
+                           network_value,
+                           snapshot_value):
+    if not submit:
         raise PreventUpdate
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
     batfish.set_snapshot(snapshot_value)
-    result = batfish.traceroute(source, destination)
-    nodes = []
-    traces = result.Traces[0]
-    count = 0
-    trace_edges = []
-    children = []
-    stylesheet = [
-        {
-            'selector': 'edge',
-            'style': {
-                'curve-style': 'bezier'
-            }
-        },
-        {
-            'selector': 'node',
-            'style': {
-                'label': 'data(id)',
-                'text-outline-color': '#ffffff'
-            }
-        },
-    ]
-    colors = ["red", "blue", "green", "black", "yellow", "brown", "cyan", "grey", "lime" ]
-    while count < len(traces):
-        step_list = []
-        parent_list = []
-        first_edge_node_count = 0
-        second_edge_node_count = 1
-        trace = result.Traces[0][count]
-        parser = ttp(data=str(trace), template=trace_template)
-        parser.parse()
-        parsed_results = parser.result(format='raw')[0][0]
+    result = batfish.traceroute(source, destination, bidir)
+    reverse_flow_graph = []
+    reverse_flow_traces = []
 
-        for x in parsed_results:
-            nodes.append(str(x["NODE"]))
-        while second_edge_node_count < len(trace):
-            pair = []
-            first_edge_node = parsed_results[first_edge_node_count]["NODE"]
-            second_edge_node = parsed_results[second_edge_node_count]["NODE"]
-            pair.append('trace_' + str(count))
-            pair.append(first_edge_node)
-            pair.append(second_edge_node)
-            trace_edges.append(tuple(pair))
-            first_edge_node_count += 1
-            second_edge_node_count += 1
-        top_sum = html.Summary('Trace ' + str(count))
-        for x in parsed_results:
-            contents = ""
-            for item in x.items():
-                contents = contents + item[0] + ': ' + item[1] + '\n'
-            steps = html.Details([html.Summary('Step ' + str(x['STEP'])), html.Div(contents)])
-            step_list.append(steps)
-        parent_list.append(top_sum)
-        for x in step_list:
-            parent_list.append(x)
-        top_tree = html.Details(parent_list)
-        children.append(top_tree)
-        trace_style = [{
-            'selector': 'edge.' + 'trace_' + str(count),
-            'style': {
-                'target-arrow-color': colors[0],
-                'target-arrow-shape': 'triangle',
-                'line-color': colors[0]
-            }
-        }]
-        count += 1
-        del colors[0]
-        stylesheet = stylesheet + trace_style
+    if bidir:
+        forward_flow_details = get_traceroute_details('forward', result, True)
+        forward_flow_graph = forward_flow_details[0]
+        forward_flow_traces = forward_flow_details[1]
+        reverse_flow_details = get_traceroute_details('reverse', result, True)
+        reverse_flow_graph = reverse_flow_details[0]
+        reverse_flow_traces = reverse_flow_details[1]
+    else:
+        forward_flow_details = get_traceroute_details('forward', result, False)
+        forward_flow_graph = forward_flow_details[0]
+        forward_flow_traces = forward_flow_details[1]
 
-    print(stylesheet)
+    return forward_flow_graph, forward_flow_traces, reverse_flow_graph, reverse_flow_traces
 
 
-
-
-    parent = [
-            {'data': {'id': 'Start', 'label': "Start"}},
-            {'data': {'id': 'Finish', 'label': "Finish"}}
-    ]
-    start_node = [{'data': {'id': nodes[0], 'label': nodes[0], 'parent': 'Start' }}]
-    finish_node = [{'data': {'id': nodes[len(nodes) - 1 ], 'label': nodes[len(nodes) - 1], 'parent': 'Finish'}}]
-    edges = [
-        {'data': {'source': source, 'target': target}, 'classes':trace}
-        for trace, source, target, in trace_edges]
-    nodes = [{'data': {'id': device, 'label': device}} for device in
-             set(nodes)]
-    all_nodes = start_node + finish_node + nodes
-    print(edges)
-
-    return create_traceroute_graph(parent + all_nodes + edges, stylesheet), children
 
 
 @app.callback([Output('select-enter-location-button', 'options'),
@@ -598,3 +548,5 @@ def get_traceroute_modal(batfish_snapshot, batfish_host, batfish_network):
                 'value': interface}
                 for interface in options]
     return interfaces, interfaces
+
+

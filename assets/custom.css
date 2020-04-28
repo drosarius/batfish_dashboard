@@ -1,0 +1,28 @@
+
+details > summary {
+  padding: 2px 6px;
+  width: 15em;
+  background-color: #ddd;
+  border: none;
+  box-shadow: 1px 1px 1px black;
+  cursor: pointer;
+  font-size: 10px;
+  margin-left: 5px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  font-weight: bold;
+
+}
+
+
+.trace_steps {
+    width: 75px;
+}
+
+.bidir_switch {
+  margin: 0 auto;
+  width: 100px;
+  margin-left: 0px;
+  margin-bottom: 10px;
+
+}
