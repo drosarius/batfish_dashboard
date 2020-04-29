@@ -130,8 +130,7 @@ def get_batfish_networks(n, value):
         dropdown1 = dcc.Dropdown(
             id="select-network-button",
             placeholder='Select a Network',
-            style={'margin': '5px',
-                   'width': '150px'},
+            className="main_page_dropdown",
             options=options,
             value=None
         )
@@ -162,14 +161,10 @@ def get_batfish_networks(n, value):
                                color="dark",
                                outline=True,
                                size="sm",
-                               style=dict(
-                                   height="25px",
-                               )),
+                               ),
                     dcc.Dropdown(
                         id="delete_network_dropdown",
                         placeholder='Select a Network',
-                        style={'margin': '5px',
-                               'width': '150px'},
                         options=options,
                         value=None
                     ),
@@ -178,10 +173,7 @@ def get_batfish_networks(n, value):
                                color="dark",
                                outline=True,
                                size="sm",
-                               style=dict(
-                                   margin="5px",
-                                   height="25px",
-                               )),
+                               ),
                     html.H1(id="delete-success", style={"display":"none"})
 
                 ],
@@ -212,8 +204,7 @@ def set_batfish_snapshot(host_value, network_value):
     dropdown = dcc.Dropdown(
         id="select-snapshot-button",
         placeholder='Select Snapshot',
-        style={'margin': '5px',
-               'width': '150px'},
+        className="main_page_dropdown",
         options=options,
         value=None
 
@@ -292,27 +283,94 @@ def create_snapshot_modal(n, is_open):
     return is_open
 
 @app.callback(Output('output-data-upload', 'children'),
-               [Input('config-upload-data', 'contents'),
+               [Input('device-configs-upload-data', 'contents'),
+                Input('host-configs-upload-data', 'contents'),
+                Input('iptables-configs-upload-data', 'contents'),
+                Input('aws-configs-upload-data', 'contents'),
+                Input('misc-configs-upload-data', 'contents'),
                 Input('modal-select-network-button', 'value'),
                 Input('create_snapshot_submit_button', 'n_clicks'),
                 Input('create-snapshot-name', 'value')],
-               [State("config-upload-data", "filename"),
+               [State("device-configs-upload-data", "filename"),
+                State("host-configs-upload-data", "filename"),
+                State("iptables-configs-upload-data", "filename"),
+                State("aws-configs-upload-data", "filename"),
+                State("misc-configs-upload-data", "filename"),
                 State("batfish_host_input", "value")], )
-def create_snapshot_modal(upload_content,batfish_network, submit,snapshot_name, filenames, batfish_host, ):
-    if filenames is None:
-        raise PreventUpdate
+def create_snapshot_modal(device_configs_upload_content,
+                          host_configs_upload_content,
+                          iptables_configs_upload_content,
+                          aws_configs_upload_content,
+                          misc_configs_upload_content,
+                          batfish_network,
+                          submit,snapshot_name,
+                          device_config_filenames,
+                          host_config_filenames,
+                          iptables_config_filenames,
+                          aws_config_filenames,
+                          misc_config_filenames,
+                          batfish_host):
+    device_html_list = None
+    host_html_list = None
+    iptable_html_list = None
+    aws_html_list = None
+    misc_html_list = None
+
+    if device_config_filenames is not None:
+        device_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+    if host_config_filenames is not None:
+        host_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+    if iptables_config_filenames is not None:
+        iptable_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+    if aws_config_filenames is not None:
+        aws_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+    if misc_config_filenames is not None:
+        misc_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+
+    all_children = html.Div([
+        html.Ul(
+            children=[
+                html.Li(['Device Configs', device_html_list]),
+                html.Li(['Host Configs', host_html_list]),
+                html.Li(['IP Table Configs', iptable_html_list]),
+                html.Li(['AWS Configs', aws_html_list]),
+                html.Li(['Misc Configs', misc_html_list]),
+            ],
+                )
+    ])
+
+
+    if not submit:
+        return all_children
     if submit:
-        for name, data in zip(filenames, upload_content):
-            save_file(name, data)
+        if device_config_filenames is not None:
+            for name, data in zip(device_config_filenames,
+                                  device_configs_upload_content):
+                save_file("device_config", name, data)
+        if host_config_filenames is not None:
+            for name, data in zip(host_config_filenames,
+                                  host_configs_upload_content):
+                save_file("host_config", name, data)
+        if iptables_config_filenames is not None:
+            for name, data in zip(iptables_config_filenames,
+                                  iptables_configs_upload_content):
+                save_file("iptable_config", name, data)
+        if aws_config_filenames is not None:
+            for name, data in zip(aws_config_filenames,
+                                  aws_configs_upload_content):
+                save_file("aws_config", name, data)
+        if misc_config_filenames is not None:
+            for name, data in zip(misc_config_filenames,
+                                  misc_configs_upload_content):
+                save_file("misc_config", name, data)
         batfish = Batfish(batfish_host)
         batfish.set_network(batfish_network)
         batfish.init_snapshot(snapshot_name)
         delete_old_files()
-    children = html.Div([
-        html.Ul([html.Li(x) for x in filenames]
-                )
-    ])
-    return children
+        children = []
+
+
+
 
 @app.callback(
     Output("delete_snapshot_hidden", "children"),

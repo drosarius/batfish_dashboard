@@ -1,10 +1,15 @@
 
+#main-page {
+    background-color: ghostwhite;
+    height: 850px;
+    width: 1730px;
+}
+
 details > summary {
   padding: 2px 6px;
   width: 15em;
-  background-color: #ddd;
-  border: none;
-  box-shadow: 1px 1px 1px black;
+  background-color: #ffffff;
+  border: 1px solid;
   cursor: pointer;
   font-size: 10px;
   margin-left: 5px;
@@ -25,4 +30,197 @@ details > summary {
   margin-left: 0px;
   margin-bottom: 10px;
 
+}
+
+#cytoscape {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #555555;
+  box-shadow: 0 0.5rem 0.8rem #00000080;
+  resize: both;
+  overflow: auto;
+  border-radius:3px
+}
+
+#traceroute-cytoscape {
+  background-color: #ffffff;
+  border: 1px solid;
+  resize: both;
+  overflow: auto;
+  border-color: #555555;
+  box-shadow: 0 0.5rem 0.8rem #00000080;
+  border-radius:3px
+}
+
+.Router {
+  background-image: url("assets\img\Router.png");
+}
+
+.main_page_button_div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.main_page_dropdown{
+  width: 200px;
+  margin: 5px;
+}
+.main_page_button {
+  margin: 5px;
+  border-radius:3px;
+  background-color: ghostwhite;
+  color: #555555;
+}
+
+.main_page_button:hover {
+  color: ghostwhite;
+  background-color: #555555;
+}
+
+#set_batfish_host_submit_button{
+  border-color: #555555;
+  color: #555555;
+  background-color: ghostwhite;
+  border-radius: 3px;
+}
+
+#set_batfish_host_submit_button:hover{
+  color: white;
+  background-color: #555555;
+}
+
+.main_page_card {
+  border: none;
+  background-color: ghostwhite;
+  margin-left: 7px;
+}
+
+#title-bar-div {
+    margin: 0;
+}
+
+#title-bar{
+  height: 40px;
+  background-color: #555555;
+}
+
+#title-bar-text{
+  letter-spacing: 0.1em;
+  color: ghostwhite;
+  position: absolute;
+  left: 12px;
+  margin-top: 5px;
+  font-variant: small-caps;
+  font-family: fantasy;
+  font-size: 32px;
+}
+
+
+#graph-type-tabs{
+  width: 500px;
+}
+.main-page-graph-tab {
+  cursor: pointer;
+  padding:10px 20px;
+  margin:0px 2px;
+  background:#000;
+  display:inline-block;
+  color:#555555;
+  border-radius:3px 3px 0px 0px;
+  box-shadow: 0 0.5rem 0.8rem #00000080;
+  width: 200px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+#placeholder-for-graph {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 3px;
+}
+
+#create_network_submit_button {
+  height: 25px;
+  border-color: #555555;
+  color: #555555;
+}
+
+#create_network_submit_button:hover{
+  color: white;
+  background-color: #555555;
+}
+
+#delete_network_submit_button {
+  height: 25px;
+  border-color: #555555;
+  color: #555555;
+}
+
+#delete_network_submit_button:hover{
+  color: white;
+  background-color: #555555;
+}
+
+#create-network-form {
+  height: 25px;
+  margin-left: 10px;
+}
+
+#delete_network_dropdown {
+  width: 150px;
+  margin: 5px;
+
+}
+
+/*Traceroute Modal*/
+#options {
+  margin: 5px;
+}
+
+#traceroute_submit_button {
+  height: 25px;
+  border-color: #555555;
+  color: #555555;
+}
+
+#traceroute_submit_button:hover{
+  color: white;
+  background-color: #555555;
+}
+
+
+.modal-header{
+  background-color: #555555;
+}
+
+.modal-title {
+  color: ghostwhite;
+  letter-spacing: 0.1em;
+  font-variant: small-caps;
+  font-family: fantasy;
+  font-size: 24px;
+}
+
+.model-body {
+  background-color: ghostwhite;
+}
+
+.Snapshot_Upload{
+  margin: 10px;
+  text-align: center;
+  border-radius: 3px;
+  border-style: dashed;
+  border-width: 1px;
+  line-height: 60px;
+  width: 760px;
+  height: 70px;
+
+}
+
+.inside_drag_and_drop {
+  height: 30px;
+}
+
+.upload_p {
+  height: 50px;
 }

@@ -96,12 +96,6 @@ def create_graph(elements):
             style={
                 'width': '1000px',
                 'height': '500px',
-                # 'border': '1px solid black',
-                'border-radius': '5px',
-                'resize': 'both',
-                'overflow': 'auto',
-                'background-color': '#e0f8ff',
-                'border-style': 'inset'
             },
 
             elements=elements,
@@ -154,15 +148,8 @@ def create_traceroute_graph(elements, stylesheet):
             id='traceroute-cytoscape',
 
             style={
-                # "margin-top": "30px",
-                "margin-left": "5px",
                 'width': '700px',
                 'height': '500px',
-                'border-radius': '5px',
-                'resize': 'both',
-                'overflow': 'auto',
-                'background-color': '#e0f8ff',
-                'border-style': 'inset'
             },
 
             elements=elements,
@@ -187,7 +174,7 @@ def get_elements(nodes, trace_edges):
     edges = [
         {'data': {'source': source, 'target': target}, 'classes': trace}
         for trace, source, target, in trace_edges]
-    nodes = [{'data': {'id': device, 'label': device}} for device in
+    nodes = [{'data': {'id': device, 'label': device.capitalize()}, 'classes':'Router'} for device in
              set(nodes)]
     all_nodes = start_node + finish_node + nodes
 
@@ -224,6 +211,7 @@ trace_template = """
   ACCEPTED({{ ACCEPTED }})
 """
 def get_traceroute_details(direction, result, bidir):
+
 
     nodes = []
     count = 0
@@ -329,16 +317,31 @@ def get_traceroute_details(direction, result, bidir):
     return [create_traceroute_graph(get_elements(nodes, trace_edges),
                                    stylesheet), children]
 
-SNAPSHOT_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_IPTABLES_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_AWS_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 
-def save_file(name, content):
+def save_file(config_type, name, content):
     data = content.encode("utf8").split(b";base64,")[1]
-    with open(os.path.join(SNAPSHOT_UPLOAD_DIRECTORY, name), "wb") as fp:
+    if config_type == 'device_config':
+        directory = SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY
+    elif config_type == 'host_config':
+        directory = SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY
+    elif config_type == 'iptable_config':
+        directory = SNAPSHOT_IPTABLES_CONFIG_UPLOAD_DIRECTORY
+    elif config_type == 'aws_config':
+        directory = SNAPSHOT_AWS_CONFIG_UPLOAD_DIRECTORY
+    elif config_type == 'misc_config':
+        directory = SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY
+
+    with open(os.path.join(directory, name), "wb") as fp:
         fp.write(base64.decodebytes(data))
 
 def delete_old_files():
     try:
-        for subdir, dirs, files in os.walk(SNAPSHOT_UPLOAD_DIRECTORY):
+        for subdir, dirs, files in os.walk("assets\snapshot_holder"):
             for file in files:
                 filePath = os.path.join(subdir, file)
                 os.unlink(filePath)

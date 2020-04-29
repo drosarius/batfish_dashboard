@@ -36,28 +36,28 @@ batfish_questions = ["ipOwners",
                      "detectLoops"]
 
 
+main_page_graph_tab_selected = dict(
+    padding='10px 20px',
+    backgroundColor='#555555',
+    color='#fff',
+    borderBottom='none',
+    borderTop='none',
+    fontWeight='bold',
+
+)
+
 main_page_layout = html.Div(id='main-page', children=[
         html.Div(
-            style={'margin': '0'},
+            id='title-bar-div',
             children=[
                 html.Header(
-                    style={
-                        'background-color': 'black',
-                        'height': '40px',
-                    },
+                    id='title-bar',
                     children=[
                         html.H1('Batfish Dashboard',
-                                style={
-                                    'font-weight': 'bold',
-                                    'color': 'white',
-                                    'position': 'absolute',
-                                    'left': '12px',
-                                    'margin-top': '5px',
-                                    'font-family': 'Arial, Helvetica, sans-serif'})
+                                id='title-bar-text',
+                                )
                     ]
-
                 )
-
             ]
         ),
         html.Br(),
@@ -71,75 +71,64 @@ main_page_layout = html.Div(id='main-page', children=[
                     html.Button(
                         "Set Batfish Host",
                         id="set-batfish-host-button",
-                        style={'margin': '5px'}
+                        className="main_page_button",
                     ),
                 ],
-                    style=dict(
-                        display='table-cell',
-                        verticalAlign="middle",
-                    )
+                    className="main_page_button_div",
                 ),
                 html.Div([
                     html.Button(
                         "Create/Delete Network",
                         id="create-network-button",
-                        style={'margin': '5px'}
+                        className="main_page_button",
                     ),
                 ],
-                    style=dict(
-                        display='table-cell',
-                        verticalAlign="middle",
-                    )
+                    className="main_page_button_div",
                 ),
                 html.Div([
                     html.Button(
                         "Create/Delete Snapshot",
                         id="create-snapshot-button",
-                        style={'margin': '5px'}
+                        className="main_page_button",
                     ),
                 ],
-                    style=dict(
-                        display='table-cell',
-                        verticalAlign="middle",
-                    )
+                    className="main_page_button_div",
                 ),
                 html.Div([],
+                         className="main_page_button_div",
                          id='select-network-div',
-                         style=dict(
-                             display='table-cell',
-                             verticalAlign="middle",
-                         )
                          ),
                 html.Div([],
+                         className="main_page_button_div",
                          id='select-snapshot-div',
-                         style=dict(
-                             display='table-cell',
-                             verticalAlign="middle",
-                         )
                          ),
                 html.Div([
                     html.Button(
+
                         "Ask a Question",
                         id="ask-question-button",
-                        style={'margin': '5px'}
+                        className="main_page_button",
                     ),
                 ],
-                    style=dict(
-                        display='table-cell',
-                        verticalAlign="middle",
-                    )
+                    className="main_page_button_div",
                 ),
                 html.Div([
                     html.Button(
                         "Trace Route",
                         id="traceroute-button",
-                        style={'margin': '5px'}
+                        className="main_page_button",
                     ),
                 ],
-                    style=dict(
-                        display='table-cell',
-                        verticalAlign="middle",
-                    )
+                    className="main_page_button_div",
+                ),
+                html.Div([
+                    html.Button(
+                        "Chaos Monkey",
+                        id="chaos-monkey-button",
+                        className="main_page_button",
+                    ),
+                ],
+                    className="main_page_button_div",
                 ),
 
                 html.Div(
@@ -149,9 +138,11 @@ main_page_layout = html.Div(id='main-page', children=[
 
                     children=[
                         dbc.Collapse(
-                            dbc.Card(
-                                dbc.CardBody(
 
+                            dbc.Card(
+                            className='main_page_card',
+                            children=[
+                                dbc.CardBody(
                                     children=[
                                         dbc.Form(
                                             [
@@ -160,7 +151,9 @@ main_page_layout = html.Div(id='main-page', children=[
                                                         dbc.Input(
                                                             id="batfish_host_input",
                                                             value="",
-                                                            placeholder="Enter host"),
+                                                            placeholder="Enter host",
+                                                            ),
+
                                                     ],
                                                     className="mr-3",
                                                 ),
@@ -178,15 +171,21 @@ main_page_layout = html.Div(id='main-page', children=[
                                         )
                                     ]
                                 )
+                            ],
+
                             ),
                             id="batfishhost-collapse",
                         ),
 
                         dbc.Collapse(
                             dbc.Card(
+                            className='main_page_card',
+                                children=[
                                 dbc.CardBody(
                                     children=[]
                                 )
+                                ],
+
                             ),
                             id="create-network-collapse",
 
@@ -206,22 +205,20 @@ main_page_layout = html.Div(id='main-page', children=[
             children=[
                 html.Div(
                     style=dict(width="1000px",
-                               flex="1"),
+                               flex="1",
+                               ),
                     children=[
                         dcc.Tabs(id='graph-type-tabs', value='layer3',
-                                 style=dict(width="1000px",
-                                            ),
                                  children=[
-                                     dcc.Tab(label='Layer 3', value='layer3'),
-                                     dcc.Tab(label='OSPF', value='ospf'),
-                                     dcc.Tab(label='BGP', value='bgp'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected, className='main-page-graph-tab', label='Layer 3', value='layer3'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='OSPF', value='ospf'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='BGP', value='bgp'),
                                  ]),
                         html.Div(id="placeholder-for-graph", )
 
                     ]),
             ],
         ),
-        ##################### Main Graph #############################
 
 
         html.Div(
@@ -295,24 +292,101 @@ main_page_layout = html.Div(id='main-page', children=[
 
                                 html.Div([
                                     dcc.Upload(
-                                        id='config-upload-data',
-                                        children=html.Div([
-                                            'Drag and Drop or ',
-                                            html.A('Select Files')
+                                        className='Snapshot_Upload',
+                                        id='device-configs-upload-data',
+                                        children=html.Div(
+                                            className='inside_drag_and_drop',
+                                            children= [
+                                            html.P(
+                                                className="upload_p",
+                                                children=[
+                                                    html.H3("Device Configurations"),
+                                                    'Drag and Drop or ',
+                                                    html.A('Select Files')
+                                                ],
+                                            ),
                                         ]),
-                                        style={
-                                            'width': '760px',
-                                            'height': '250px',
-                                            'lineHeight': '60px',
-                                            'borderWidth': '1px',
-                                            'borderStyle': 'dashed',
-                                            'borderRadius': '5px',
-                                            'textAlign': 'center',
-                                            'margin': '10px'
-                                        },
                                         # Allow multiple files to be uploaded
                                         multiple=True
                                     ),
+                                    dcc.Upload(
+                                        className='Snapshot_Upload',
+                                        id='host-configs-upload-data',
+                                        children=html.Div(
+                                            className='inside_drag_and_drop',
+                                            children=[
+                                                html.P(
+                                                    className="upload_p",
+                                                    children=[
+                                                        html.H3(
+                                                            "Host Configurations"),
+                                                        'Drag and Drop or ',
+                                                        html.A('Select Files')
+                                                    ],
+                                                ),
+                                            ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                    ),
+                                    dcc.Upload(
+                                        className='Snapshot_Upload',
+                                        id='iptables-configs-upload-data',
+                                        children=html.Div(
+                                            className='inside_drag_and_drop',
+                                            children=[
+                                                html.P(
+                                                    className="upload_p",
+                                                    children=[
+                                                        html.H3(
+                                                            "IP Table Configurations"),
+                                                        'Drag and Drop or ',
+                                                        html.A('Select Files')
+                                                    ],
+                                                ),
+                                            ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                    ),
+                                    dcc.Upload(
+                                        className='Snapshot_Upload',
+                                        id='aws-configs-upload-data',
+                                        children=html.Div(
+                                            className='inside_drag_and_drop',
+                                            children=[
+                                                html.P(
+                                                    className="upload_p",
+                                                    children=[
+                                                        html.H3(
+                                                            "AWS Configurations"),
+                                                        'Drag and Drop or ',
+                                                        html.A('Select Files')
+                                                    ],
+                                                ),
+                                            ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                    ),
+                                    dcc.Upload(
+                                        className='Snapshot_Upload',
+                                        id='misc-configs-upload-data',
+                                        children=html.Div(
+                                            className='inside_drag_and_drop',
+                                            children=[
+                                                html.P(
+                                                    className="upload_p",
+                                                    children=[
+                                                        html.H3(
+                                                            "Miscellaneous Configurations"),
+                                                        'Drag and Drop or ',
+                                                        html.A('Select Files')
+                                                    ],
+                                                ),
+                                            ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                    ),
+
+
                                     html.Div(id='output-data-upload'),
                                 ]),
                             ],
@@ -395,7 +469,8 @@ main_page_layout = html.Div(id='main-page', children=[
                     size="xl",
                     scrollable=True,
                     children=[
-                        dbc.ModalHeader("Trace Route"),
+                        dbc.ModalHeader(
+                            "Trace Route"),
                         dbc.ModalBody(
 
                             children=[
@@ -476,7 +551,8 @@ main_page_layout = html.Div(id='main-page', children=[
                                 ),
                                 html.Div(
                                     style=dict(
-                                        display="flex"
+                                        display="flex",
+                                        margin_top="10px"
                                     ),
                                     children=[
                                         html.Div(id='traceroute-graph',
