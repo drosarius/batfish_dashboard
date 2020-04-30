@@ -368,6 +368,7 @@ def create_snapshot_modal(device_configs_upload_content,
         batfish.init_snapshot(snapshot_name)
         delete_old_files()
         children = []
+        return children
 
 
 

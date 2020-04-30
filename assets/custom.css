@@ -224,3 +224,14 @@ details > summary {
 .upload_p {
   height: 50px;
 }
+
+#traceroute-modal {
+  height: 800px;
+  width: 5000px;
+
+}
+
+#ask-a-question-modal {
+    height: 800px;
+    width: 5000px;
+}

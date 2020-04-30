@@ -154,31 +154,30 @@ def create_traceroute_graph(elements, stylesheet):
 
             elements=elements,
             stylesheet=stylesheet,
-            layout={'name': 'breadthfirst'
+            layout={'name': 'preset'
                     }
         ),
     ]
     return children
 
 
-def get_elements(nodes, trace_edges):
-    parent = [
-        {'data': {'id': 'Start', 'label': "Start"}},
-        {'data': {'id': 'Finish', 'label': "Finish"}}
-    ]
-    start_node = [
-        {'data': {'id': nodes[0], 'label': nodes[0], 'parent': 'Start'}}]
-    finish_node = [{'data': {'id': nodes[len(nodes) - 1],
-                             'label': nodes[len(nodes) - 1],
-                             'parent': 'Finish'}}]
+def get_elements(nodes, trace_edges, max_value, node_list):
+    start = node_list[0]
+    finish = node_list[-1]
+
     edges = [
         {'data': {'source': source, 'target': target}, 'classes': trace}
         for trace, source, target, in trace_edges]
-    nodes = [{'data': {'id': device, 'label': device.capitalize()}, 'classes':'Router'} for device in
-             set(nodes)]
+    nodes = [{'data': {'id': device, 'label': device},'position': {'x': position[0] * 200, 'y': position[1] * 200}, 'classes':'Router'} for device, position in
+             nodes.items()]
+    start_node = [
+        {'data': {'id': start, 'label': start},
+         'position': {'x': 0, 'y': 0}}]
+    finish_node = [{'data': {'id': finish, 'label': finish},
+         'position': {'x': (max_value + 1) * 200, 'y': 0}}]
     all_nodes = start_node + finish_node + nodes
 
-    return parent + all_nodes + edges
+    return all_nodes + edges
 
 flow_template = """
 start={{ START }} [{{ SRC }}->{{ DST }} {{ PROTOCOL }} length={{ LENGTH }}]
@@ -213,7 +212,8 @@ trace_template = """
 def get_traceroute_details(direction, result, bidir):
 
 
-    nodes = []
+    nodes = {}
+    node_list = []
     count = 0
     trace_edges = []
     children = []
@@ -267,8 +267,26 @@ def get_traceroute_details(direction, result, bidir):
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
 
+        # for node in parsed_results:
+        #     nodes.append(str(node["NODE"]))
+
+        x = 0
+        y = 0
         for node in parsed_results:
-            nodes.append(str(node["NODE"]))
+            node = node["NODE"]
+
+            if node not in nodes:
+
+                if x in [value for values in nodes.values() for value in
+                         values]:
+                    nodes[node] = [x, y + 1]
+                else:
+                    node_list.append(node)
+                    nodes[node] = [x, y]
+            x += 1
+
+        max_value = max(
+            [value for values in nodes.values() for value in values])
 
         while second_edge_node_count < len(trace):
             pair = []
@@ -314,7 +332,7 @@ def get_traceroute_details(direction, result, bidir):
         del colors[0]
         stylesheet = stylesheet + trace_style
 
-    return [create_traceroute_graph(get_elements(nodes, trace_edges),
+    return [create_traceroute_graph(get_elements(nodes, trace_edges, max_value, node_list),
                                    stylesheet), children]
 
 SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
