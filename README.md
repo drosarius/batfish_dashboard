@@ -23,22 +23,22 @@ Enjoy!
 
 ### Graphs
 
-#####Layer 3 Graph
+##### Layer 3 Graph
 
 <img src="/assets/img/Layer_3_Graph.PNG" width="1000" />
 
 
-#####OSPF Graph
+##### OSPF Graph
 
 <img src="/assets/img/Ospf_graph.PNG" width="1000" />
 
-#####BGP Graph
+##### BGP Graph
 
-<img src="/assets/img/BGP_Graph.PNG" width="1000" />
+<img src="/assets/img/BGP_graph.PNG" width="1000" />
 
 ### Ask a Question
 
-<img src="/assets/img/Ask_a_Question_Graph.PNG" width="1000" />
+<img src="/assets/img/Ask_a_question_Graph.PNG" width="1000" />
 
 ### Trace Route
 
