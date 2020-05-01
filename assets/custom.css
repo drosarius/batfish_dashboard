@@ -1,36 +1,15 @@
 
+body {
+  background-color: ghostwhite;
+}
 #main-page {
     background-color: ghostwhite;
-    height: 850px;
-    width: 1730px;
+    /*height: 850px;*/
+    /*width: 1730px;*/
+    height: 100%;
+    width: auto;
 }
 
-details > summary {
-  padding: 2px 6px;
-  width: 15em;
-  background-color: #ffffff;
-  border: 1px solid;
-  cursor: pointer;
-  font-size: 10px;
-  margin-left: 5px;
-  border-radius: 5px;
-  margin-bottom: 5px;
-  font-weight: bold;
-
-}
-
-
-.trace_steps {
-    width: 75px;
-}
-
-.bidir_switch {
-  margin: 0 auto;
-  width: 100px;
-  margin-left: 0px;
-  margin-bottom: 10px;
-
-}
 
 #cytoscape {
   background-color: #ffffff;
@@ -42,15 +21,8 @@ details > summary {
   border-radius:3px
 }
 
-#traceroute-cytoscape {
-  background-color: #ffffff;
-  border: 1px solid;
-  resize: both;
-  overflow: auto;
-  border-color: #555555;
-  box-shadow: 0 0.5rem 0.8rem #00000080;
-  border-radius:3px
-}
+
+
 
 .Router {
   background-image: url("assets\img\Router.png");
@@ -172,21 +144,8 @@ details > summary {
 
 }
 
-/*Traceroute Modal*/
-#options {
-  margin: 5px;
-}
 
-#traceroute_submit_button {
-  height: 25px;
-  border-color: #555555;
-  color: #555555;
-}
 
-#traceroute_submit_button:hover{
-  color: white;
-  background-color: #555555;
-}
 
 
 .modal-header{
@@ -225,13 +184,80 @@ details > summary {
   height: 50px;
 }
 
-#traceroute-modal {
-  height: 800px;
-  width: 5000px;
-
-}
 
 #ask-a-question-modal {
     height: 800px;
     width: 5000px;
 }
+
+/*Main Page Traceroute*/
+
+#traceroute-cytoscape {
+  background-color: #ffffff;
+
+  resize: both;
+  overflow: auto;
+  border-color: #555555;
+  /*box-shadow: 0 0.5rem 0.8rem #00000080;*/
+  border-radius:3px
+}
+
+details > summary {
+  padding: 2px 6px;
+  width: 15em;
+  background-color: #ffffff;
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 10px;
+  margin-left: 5px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  font-weight: bold;
+
+}
+
+.main_page_traceroute_flow_details{
+  position: static;
+  display: inline-block;
+  vertical-align: top;
+}
+#trace-tree {
+  position: static;
+  display: inline-block;
+  vertical-align: top;
+
+}
+
+
+.trace_steps {
+    width: 75px;
+}
+
+.bidir_switch {
+  margin: 0 auto;
+  width: 100px;
+  margin-left: 0px;
+  margin-bottom: 10px;
+
+}
+
+.custom-select > option {
+  font-size: 16px;
+}
+.custom-select {
+  height: 40px;
+  font-size: 16px;
+}
+.input-group-text {
+  font-size: 12px;
+}
+legend {
+  font-weight: bold;
+  color: #555555;
+}
+fieldset {
+  border: 1px solid;
+  border-color: #555555;
+
+}
+

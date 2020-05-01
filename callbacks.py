@@ -11,7 +11,7 @@ from dash.exceptions import PreventUpdate
 from components.batfish import Batfish
 from components.functions import get_bgp_edges, get_bgp_nodes, getnodes, \
     getparents, getedges, create_traceroute_graph, create_graph, save_file, \
-    delete_old_files, collapsible_traces, get_elements, get_flow_meta_data, \
+    delete_old_files, get_elements, get_flow_meta_data, \
     get_traceroute_details
 from ttp import ttp
 from app import app
@@ -527,28 +527,109 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
         return create_graph(getparents(batfish_df) + get_bgp_nodes(
             batfish_df) + get_bgp_edges(batfish_df))
 
+    if graph_type == "traceroute":
+        batfish_df = batfish.get_layer3_edges()
+        options = [str(x) for x in batfish_df["Interface"]]
+        interfaces = [{'label': interface,
+                       'value': interface}
+                      for interface in options]
 
-#####################Trace Route Modal#######################################
+        return html.Div(
 
-@app.callback(Output('traceroute-modal', 'is_open'),
-                   [Input('traceroute-button', 'n_clicks')],
-                   [State("traceroute-modal", "is_open")], )
-def get_traceroute_modal(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+        children=[
 
+        dbc.Card(
+            dbc.CardBody(
+                children=[
+                    dbc.Row([
+                        dbc.Col(
+                            dbc.InputGroup(
+                            [
+                            dbc.InputGroupAddon("Source", addon_type="prepend"),
+                                dbc.Select(
+                                    id="main_page_traceroute_src",
+                                    options=interfaces
+                                ),
+
+                            ]),
+                        ),
+                        dbc.Col(
+                            dbc.InputGroup(
+                            [
+                                dbc.InputGroupAddon("Destination", addon_type="prepend"),
+                                dbc.Select(
+                                    id="main_page_traceroute_dst",
+                                    options=interfaces
+                                ),
+
+                            ]),
+                        ),
+                        dbc.Col(
+                                width=1,
+                                children=[
+                                    html.Div(
+                                        className="bidir_switch",
+                                        children=[
+                                            daq.BooleanSwitch(
+                                                id='main_page_traceroute_bidir_switch',
+                                                on=False,
+                                                label="Bidir",
+                                                labelPosition="left",
+                                            ),
+
+                                        ]),
+                                ],
+
+                        ),
+                        dbc.Col(
+                            html.Div(
+                                dbc.Button("Trace!", id="main_page_traceroute_submit")),
+                        )
+
+                    ]),
+                ],
+            ),
+        ),
+            html.Fieldset(
+                            [html.Legend("Forward Trace Route"),
+                              html.Div(
+                                  id="main_page_forward_traceroute_graph"),
+                              html.Div(
+                               id="main_page_forward_traceroute_collapse"),
+
+                          ]),
+
+            html.Fieldset(
+                [html.Legend("Reverse Trace Route"),
+                 html.Div(id="main_page_reverse_traceroute_graph"),
+                 html.Div(id="main_page_reverse_traceroute_collapse"),
+
+                 ]),
+
+
+
+
+        ],
+
+    ),
+
+
+
+
+############################ Trace Route ####################################
 @app.callback(
-    [Output("traceroute-graph", "children"),
-     Output("trace-collapse", "children"),
-     Output("reverse_traceroute_graph", "children"),
-     Output("reverse_trace_collapse", "children")
+    [Output("main_page_forward_traceroute_graph", "children"),
+     Output("main_page_forward_traceroute_collapse", "children"),
+     Output("main_page_reverse_traceroute_graph", "children"),
+     Output("main_page_reverse_traceroute_collapse", "children")
      ],
     [
-        Input("select-enter-location-button", "value"),
-        Input("select-destination-location-button", "value"),
-        Input("traceroute_submit_button", "n_clicks"),
-        Input("traceroute_bidir_switch", "on")
+
+        Input("main_page_traceroute_src", "value"),
+        Input("main_page_traceroute_dst", "value"),
+        Input("main_page_traceroute_submit", "n_clicks"),
+        Input("main_page_traceroute_bidir_switch", "on"),
+
 
     ],
     [State("batfish_host_input", "value"),
@@ -584,28 +665,4 @@ def set_update_trace_graph(source,
         forward_flow_traces = forward_flow_details[1]
 
     return forward_flow_graph, forward_flow_traces, reverse_flow_graph, reverse_flow_traces
-
-
-
-
-@app.callback([Output('select-enter-location-button', 'options'),
-                    Output('select-destination-location-button', 'options')
-                    ],
-                   [Input("select-snapshot-button", "value")],
-                   [State("batfish_host_input", "value"),
-                    State("select-network-button", "value"),
-                    ])
-def get_traceroute_modal(batfish_snapshot, batfish_host, batfish_network):
-    if not batfish_snapshot:
-        raise PreventUpdate
-    batfish = Batfish(batfish_host)
-    batfish.set_network(batfish_network)
-    batfish.set_snapshot(batfish_snapshot)
-    batfish_df = batfish.get_layer3_edges()
-    options = [str(x) for x in batfish_df["Interface"]]
-    interfaces = [{'label': interface,
-                'value': interface}
-                for interface in options]
-    return interfaces, interfaces
-
 

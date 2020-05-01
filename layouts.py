@@ -114,15 +114,6 @@ main_page_layout = html.Div(id='main-page', children=[
                 ),
                 html.Div([
                     html.Button(
-                        "Trace Route",
-                        id="traceroute-button",
-                        className="main_page_button",
-                    ),
-                ],
-                    className="main_page_button_div",
-                ),
-                html.Div([
-                    html.Button(
                         "Chaos Monkey",
                         id="chaos-monkey-button",
                         className="main_page_button",
@@ -213,8 +204,10 @@ main_page_layout = html.Div(id='main-page', children=[
                                      dcc.Tab(selected_style=main_page_graph_tab_selected, className='main-page-graph-tab', label='Layer 3', value='layer3'),
                                      dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='OSPF', value='ospf'),
                                      dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='BGP', value='bgp'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='Trace Route', value='traceroute'),
                                  ]),
-                        html.Div(id="placeholder-for-graph", )
+                        html.Div(id="placeholder-for-graph", ),
+                        html.Div(id="main-page-traceroute", )
 
                     ]),
             ],
@@ -222,6 +215,7 @@ main_page_layout = html.Div(id='main-page', children=[
 
 
         html.Div(
+            id="graph_layout_options",
             style={
                 'position': 'relative',
                 'left': '10px',
@@ -261,6 +255,10 @@ main_page_layout = html.Div(id='main-page', children=[
                 html.P(id='num_of_traces', style={"display":"none"}),
             ]
         ),
+
+    #######################Test######################################
+
+    ##############################################################
 
         # Create Snapshot Modal
         html.Div(
@@ -553,21 +551,22 @@ main_page_layout = html.Div(id='main-page', children=[
                                     style=dict(
                                         display="flex",
                                         margin_top="10px"
+
                                     ),
                                     children=[
                                         html.Div(id='traceroute-graph',
                                                  style=dict(
-                                                     flex="1",
+                                                     # flex="1",
                                                  ),
                                                  ),
                                         html.Div(id='reverse_traceroute_graph',
                                                  style=dict(
-                                                     flex="2",
+                                                     # flex="2",
                                                  ),
                                                  ),
                                         html.Div(id="trace-collapse",
                                                  style=dict(
-                                                     flex="1"
+                                                     # flex="1"
                                                  ),
                                                  children=[
 
@@ -575,7 +574,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                                  ),
                                         html.Div(id="reverse_trace_collapse",
                                                  style=dict(
-                                                     flex="2"
+                                                     # flex="2"
                                                  ),
                                                  children=[
 

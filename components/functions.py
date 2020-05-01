@@ -148,7 +148,7 @@ def create_traceroute_graph(elements, stylesheet):
             id='traceroute-cytoscape',
 
             style={
-                'width': '700px',
+                'width': '1720px',
                 'height': '500px',
             },
 
@@ -193,21 +193,30 @@ def get_flow_meta_data(flow_data):
     return flow_meta_data
 
 def get_flow_details(result_flow, direction):
-    flow = html.Details(
-        [html.Summary(direction),
-         html.Div(dcc.Textarea(
-             value=get_flow_meta_data(result_flow),
-             readOnly=True,
-             style={'width': '200px', 'height': 120, 'margin-left': '5px'},
-         ))])
+    flow = html.Div(className="main_page_traceroute_flow_details",
+                    children=[
+                        html.Details(
+                            [html.Summary(direction),
+                             html.Div(dcc.Textarea(
+                                 value=get_flow_meta_data(result_flow),
+                                 readOnly=True,
+                                 style={'width': '200px', 'height': 120,
+                                        'margin-left': '5px'},
+                             ))])
+                    ])
     return flow
 
 trace_template = """
 {{ STEP }}. node: {{ NODE }}
   RECEIVED({{ RECEIVED }})
+  PERMITTED({{ INGRESS_INT }} ({{ REASON }}))
+  PERMITTED(~{{ VSYS }}~{{ INGRESS_ZONE }}~{{ REASON }}~)
   FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
+  PERMITTED(~{{ EGRESS_INT }}~{{ ACL_NAME }}~ ({{ REASON }}))
+  SETUP_SESSION(Incoming Interfaces: [{{ EGRESS_ACL }}], Action: {{ ACTION }}, Match Criteria: [ipProtocol={{ MATCH_PROTOCOL }}, srcIp={{ MATCH_SRC_IP }}, dstIp={{ MATCH_DST_IP }}, srcPort={{ MATCH_SRC_PORT }}, dstPort={{ MATCH_DST_PORT }}])
   TRANSMITTED({{ TRANSMITTED }})
   ACCEPTED({{ ACCEPTED }})
+  DENIED({{ DENIED }} ({{ REASON }}))
 """
 def get_traceroute_details(direction, result, bidir):
 
@@ -246,9 +255,9 @@ def get_traceroute_details(direction, result, bidir):
         },
     ]
 
-    colors = ["red", "blue", "green", "black", "yellow", "brown", "cyan",
+    colors = ["red", "blue", "green", "black", "brown", "cyan",
               "grey", "lime", "purple",
-              "violet", "teal", "silver", "orange", "pink"]
+              "violet", "teal", "silver", "orange", "pink", "yellow"]
     while count < len(traces):
         step_list = []
         parent_list = []
@@ -267,8 +276,6 @@ def get_traceroute_details(direction, result, bidir):
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
 
-        # for node in parsed_results:
-        #     nodes.append(str(node["NODE"]))
 
         x = 0
         y = 0
@@ -318,7 +325,7 @@ def get_traceroute_details(direction, result, bidir):
         parent_list.append(top_sum)
         for data in step_list:
             parent_list.append(data)
-        top_tree = html.Details(parent_list)
+        top_tree = html.Div(id="trace-tree", children=[html.Details(parent_list)])
         children.append(top_tree)
         trace_style = [{
             'selector': 'edge.' + 'trace_' + str(count),
@@ -369,53 +376,6 @@ def delete_old_files():
 
 
 
-################## Need to figure out dynamic callbacks. Pattern matching not working#########
-def collapsible_traces(trace, step_dict, count):
-    card = []
-    for step, contents in step_dict.items():
-        card_body = [dbc.CardHeader(
-                            html.H2(
-                                dbc.Button(
-                                    step,
-                                    color="link",
-                                    id=step,
-                                ),
-                            ),
-                        ),
-                        dbc.Collapse(
-                            dbc.CardBody(
-                                dcc.Textarea(
-                                        value=contents,
-                                        readOnly=True,
-                                        style={'width': '100%', 'height': 120},
-                                        ),),
-                            id=step + "_contents",
-                        )]
-        card = card + card_body
-
-    return dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H2(
-                                html.Button(
-                                    trace,
-                                    id={
-                                        'type': 'Trace_Button',
-                                        'index': count
-                                    },
-                                )
-                            )
-                        ),
-                        dbc.Collapse(
-
-                            dbc.Card(card),
-                            id={
-                               'type': 'Trace',
-                               'index': count
-                           },
-                        ),
-                    ]
-                )
 
 
 
