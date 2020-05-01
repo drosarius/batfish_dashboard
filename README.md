@@ -25,23 +25,24 @@ Enjoy!
 
 #####Layer 3 Graph
 
-![Layer 3 Graph](assets\img\Layer 3 Graph.PNG)
+![Layer 3 Graph](assets\img\Layer%203%20Graph.PNG)
 
 #####OSPF Graph
 
-![OSPF Graph](assets\img\Ospf Graph.PNG)
+![OSPF Graph](assets\img\Ospf%20Graph.PNG)
+
 #####BGP Graph
 
-![BGP Graph](assets\img\BGP Graph.PNG)
+![BGP Graph](assets\img\BGP%20Graph.PNG)
 
 
 ### Ask a Question
 
-![ask a question](assets\img\Ask a Question.PNG)
+![ask a question](assets\img\Ask%20a%20Question.PNG)
 
 ### Trace Route
 
-![trace route](assets\img\trace route.PNG)
+![trace route](assets\img\trace%20route.PNG)
 
 
 ## Roadmap
