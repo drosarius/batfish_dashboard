@@ -13,21 +13,8 @@ from components.functions import get_bgp_edges, get_bgp_nodes, getnodes, \
     getparents, getedges, create_traceroute_graph, create_graph, save_file, \
     delete_old_files, get_elements, get_flow_meta_data, \
     get_traceroute_details
-from ttp import ttp
 from app import app
 import dash_bootstrap_components as dbc
-
-trace_template = """
-{{ STEP }}. node: {{ NODE }}
-  RECEIVED({{ RECEIVED }})
-  FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
-  TRANSMITTED({{ TRANSMITTED }})
-  ACCEPTED({{ ACCEPTED }})
-"""
-
-flow_template = """
-start={{ START }} [{{ SRC }}->{{ DST }} {{ PROTOCOL }} length={{ LENGTH }}]
-"""
 
 
 

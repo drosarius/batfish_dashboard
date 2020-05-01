@@ -18,3 +18,34 @@ If running on remote machine:
    - *remote_machine_ip*:8050
         
 Enjoy!
+
+## Features
+
+### Graphs
+
+#####Layer 3 Graph
+
+![Layer 3 Graph](assets\img\Layer 3 Graph.PNG)
+
+#####OSPF Graph
+
+![OSPF Graph](assets\img\Ospf Graph.PNG)
+#####BGP Graph
+
+![BGP Graph](assets\img\BGP Graph.PNG)
+
+
+### Ask a Question
+
+![ask a question](assets\img\Ask a Question.PNG)
+
+### Trace Route
+
+![trace route](assets\img\trace route.PNG)
+
+
+## Roadmap
+
+* Chaos Monkey
+* Trace Route with advanced options
+* Ask a Question advanced search
