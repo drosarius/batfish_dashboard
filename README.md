@@ -38,7 +38,7 @@ Enjoy!
 
 ### Ask a Question
 
-<img src="/assets/img/Ask_a_question_Graph.PNG" width="1000" />
+<img src="/assets/img/Ask_a_question.PNG" width="1000" />
 
 ### Trace Route
 
