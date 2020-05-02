@@ -1,9 +1,16 @@
 # Batfish DashBoard
 
-Loading...
+ First, I want to say thank you to the Batfish team from making such a great tool!
+ 
+ This dashboard wraps a few features from the tool [Batfish](www.batfish.org) in a "pretty" GUI.
 
 ## Quick Start
 
+
+- Download and run [batfish](https://pybatfish.readthedocs.io/en/latest/getting_started.html):
+    - docker pull batfish/allinone
+    - docker run --name batfish -v batfish-data:/data -p 8888:8888 -p 9997:9997 -p 9996:9996 batfish/allinone
+    
 - git clone https://github.com/Marphlap/batfish_dashboard.git
 - cd batfish_dashboard/
 
