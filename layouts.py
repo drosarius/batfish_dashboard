@@ -389,12 +389,17 @@ main_page_layout = html.Div(id='main-page', children=[
                         ),
                         dbc.ModalFooter(
                             children= [
+                                html.A("How to format your configurations!", href="https://pybatfish.readthedocs.io/en/latest/formats.html"),
                                     dbc.FormGroup(
                                         [
                                         dbc.Input(
                                             id="create-snapshot-name",
                                             value="",
                                             placeholder="New Snapshot Name"),
+                                        dbc.FormFeedback(
+                                            "Please enter a name for the snapshot",
+                                            valid=False,
+                                        ),
                                         ],
                                             className="mr-3",
                                     ),
@@ -402,6 +407,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                        id="create_snapshot_submit_button",
                                        color="dark",
                                        outline=True,
+
                                        style=dict(
                                            height="25px",
                                        )),

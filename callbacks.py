@@ -269,7 +269,8 @@ def create_snapshot_modal(n, is_open):
         return not is_open
     return is_open
 
-@app.callback(Output('output-data-upload', 'children'),
+@app.callback([Output('output-data-upload', 'children'),
+               Output('create-snapshot-name', 'invalid')],
                [Input('device-configs-upload-data', 'contents'),
                 Input('host-configs-upload-data', 'contents'),
                 Input('iptables-configs-upload-data', 'contents'),
@@ -304,15 +305,20 @@ def create_snapshot_modal(device_configs_upload_content,
     misc_html_list = None
 
     if device_config_filenames is not None:
-        device_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+        device_html_list = html.Ul(
+            [html.Li(x) for x in device_config_filenames])
     if host_config_filenames is not None:
-        host_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+        host_html_list = html.Ul(
+            [html.Li(x) for x in host_config_filenames])
     if iptables_config_filenames is not None:
-        iptable_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+        iptable_html_list = html.Ul(
+            [html.Li(x) for x in iptables_config_filenames])
     if aws_config_filenames is not None:
-        aws_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+        aws_html_list = html.Ul(
+            [html.Li(x) for x in aws_config_filenames])
     if misc_config_filenames is not None:
-        misc_html_list = html.Ul([html.Li(x) for x in device_config_filenames])
+        misc_html_list = html.Ul(
+            [html.Li(x) for x in misc_config_filenames])
 
     all_children = html.Div([
         html.Ul(
@@ -323,13 +329,17 @@ def create_snapshot_modal(device_configs_upload_content,
                 html.Li(['AWS Configs', aws_html_list]),
                 html.Li(['Misc Configs', misc_html_list]),
             ],
-                )
+        )
     ])
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
+    if not batfish_network:
+        raise PreventUpdate
 
-    if not submit:
-        return all_children
-    if submit:
+    if button_id == "create_snapshot_submit_button":
+        if snapshot_name == "":
+            return all_children, True
         if device_config_filenames is not None:
             for name, data in zip(device_config_filenames,
                                   device_configs_upload_content):
@@ -354,9 +364,25 @@ def create_snapshot_modal(device_configs_upload_content,
         batfish.set_network(batfish_network)
         batfish.init_snapshot(snapshot_name)
         delete_old_files()
-        children = []
-        return children
+        device_html_list = None
+        host_html_list = None
+        iptable_html_list = None
+        aws_html_list = None
+        misc_html_list = None
 
+        all_children = html.Div([
+            html.Ul(
+                children=[
+                    html.Li(['Device Configs', device_html_list]),
+                    html.Li(['Host Configs', host_html_list]),
+                    html.Li(['IP Table Configs', iptable_html_list]),
+                    html.Li(['AWS Configs', aws_html_list]),
+                    html.Li(['Misc Configs', misc_html_list]),
+                ],
+            )
+        ])
+        return all_children, False
+    return all_children, False
 
 
 
@@ -368,11 +394,14 @@ def create_snapshot_modal(device_configs_upload_content,
     [State("batfish_host_input", "value")]
 )
 def delete_snapshot(batfish_network,submit, delete_snapshot, batfish_host):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if not submit:
         raise PreventUpdate
-    batfish = Batfish(batfish_host)
-    batfish.set_network(batfish_network)
-    batfish.delete_snapshot(delete_snapshot)
+    if button_id == "delete_snapshot_submit_button":
+        batfish = Batfish(batfish_host)
+        batfish.set_network(batfish_network)
+        batfish.delete_snapshot(delete_snapshot)
 
 
 
