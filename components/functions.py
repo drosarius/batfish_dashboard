@@ -154,7 +154,8 @@ def create_traceroute_graph(elements, stylesheet):
 
             elements=elements,
             stylesheet=stylesheet,
-            layout={'name': 'preset'
+            layout={'name': 'preset',
+                    'padding':60,
                     }
         ),
     ]
@@ -219,6 +220,19 @@ trace_template = """
   DENIED({{ DENIED }} ({{ REASON }}))
 """
 def get_traceroute_details(direction, result, bidir):
+    """
+
+    :param direction:
+        The direction of the trace:
+            String: "forward" or "reverse"
+    :param result:
+        traceroute pandas dataframe
+    :param bidir:
+        If the traceroute is bidirectional:
+            boolean: true or false
+    :return:
+        Graph of the trace route and trace route details
+    """
 
 
     nodes = {}
@@ -276,7 +290,7 @@ def get_traceroute_details(direction, result, bidir):
         parser.parse()
         parsed_results = parser.result(format='raw')[0][0]
 
-
+        # Node positioning
         x = 0
         y = 0
         for node in parsed_results:
@@ -284,16 +298,16 @@ def get_traceroute_details(direction, result, bidir):
 
             if node not in nodes:
 
-                if x in [value for values in nodes.values() for value in
-                         values]:
-                    nodes[node] = [x, y + 1]
-                else:
-                    node_list.append(node)
-                    nodes[node] = [x, y]
+                if node not in nodes:
+                    all_x_values = [value[0] for value in nodes.values()]
+                    if x in all_x_values:
+                        nodes[node] = [x, all_x_values.count(x)]
+                    else:
+                        node_list.append(node)
+                        nodes[node] = [x, y]
             x += 1
 
-        max_value = max(
-            [value for values in nodes.values() for value in values])
+        max_value = max(all_x_values)
 
         while second_edge_node_count < len(trace):
             pair = []
