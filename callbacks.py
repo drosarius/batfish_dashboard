@@ -59,11 +59,14 @@ def batfish_host_toggle_collapse(n, submit_button, is_open):
     [State("batfish_host_input", "value")],
 )
 def create_network(network_name,submit,batfish_host):
-    if not submit:
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "create_network_submit_button":
         raise PreventUpdate
     batfish = Batfish(batfish_host)
     batfish.set_network(network_name)
-    return 0
+
 
 @app.callback(
     Output("create-network-collapse", "is_open"),
@@ -94,7 +97,10 @@ def set_batfish_host(value):
                     Input('delete_network_dropdown', 'value')],
                    [State("batfish_host_input", "value")], )
 def delete_network(submit, delete_network, batfish_host):
-    if not submit:
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "delete_network_submit_button":
         raise PreventUpdate
     batfish = Batfish(batfish_host)
     batfish.delete_network(delete_network)
@@ -110,64 +116,68 @@ def delete_network(submit, delete_network, batfish_host):
      Input("batfish_host_input", "value")]
 )
 def get_batfish_networks(n, value):
-    if n:
-        batfish = Batfish(value)
-        options = [{'label': network, 'value': network} for network in
-                   batfish.get_existing_networks()]
-        dropdown1 = dcc.Dropdown(
-            id="select-network-button",
-            placeholder='Select a Network',
-            className="main_page_dropdown",
-            options=options,
-            value=None
-        )
-        dropdown2 = dcc.Dropdown(
-            id="modal-select-network-button",
-            placeholder='Select a Network',
-            style={'margin': '5px',
-                   'width': '150px',
-                   },
-            options=options,
-            value=None
-        )
-        create_delete_network_children = [
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-            dbc.Form(
-                [
-                    dbc.FormGroup(
-                        [
-                            dbc.Input(
-                                id="create-network-form",
-                                value="",
-                                placeholder="New Network Name"),
-                        ],
-                        className="mr-3",
-                    ),
-                    dbc.Button("Submit",
-                               id="create_network_submit_button",
-                               color="dark",
-                               outline=True,
-                               size="sm",
-                               ),
-                    dcc.Dropdown(
-                        id="delete_network_dropdown",
-                        placeholder='Select a Network',
-                        options=options,
-                        value=None
-                    ),
-                    dbc.Button("Delete",
-                               id="delete_network_submit_button",
-                               color="dark",
-                               outline=True,
-                               size="sm",
-                               ),
-                    html.H1(id="delete-success", style={"display":"none"})
+    if button_id != "set_batfish_host_submit_button":
+        raise PreventUpdate
+    batfish = Batfish(value)
+    options = [{'label': network, 'value': network} for network in
+               batfish.get_existing_networks()]
+    dropdown1 = dcc.Dropdown(
+        id="select-network-button",
+        placeholder='Select a Network',
+        className="main_page_dropdown",
+        options=options,
+        value=None
+    )
+    dropdown2 = dcc.Dropdown(
+        id="modal-select-network-button",
+        placeholder='Select a Network',
+        style={'margin': '5px',
+               'width': '150px',
+               },
+        options=options,
+        value=None
+    )
+    create_delete_network_children = [
 
-                ],
-                inline=True,
-            )
-        ]
-        return dropdown2, dropdown1, create_delete_network_children
+        dbc.Form(
+            [
+                dbc.FormGroup(
+                    [
+                        dbc.Input(
+                            id="create-network-form",
+                            value="",
+                            placeholder="New Network Name"),
+                    ],
+                    className="mr-3",
+                ),
+                dbc.Button("Submit",
+                           id="create_network_submit_button",
+                           color="dark",
+                           outline=True,
+                           size="sm",
+                           ),
+                dcc.Dropdown(
+                    id="delete_network_dropdown",
+                    placeholder='Select a Network',
+                    options=options,
+                    value=None
+                ),
+                dbc.Button("Delete",
+                           id="delete_network_submit_button",
+                           color="dark",
+                           outline=True,
+                           size="sm",
+                           ),
+                html.H1(id="delete-success", style={"display":"none"})
+
+            ],
+            inline=True,
+        )
+    ]
+    return dropdown2, dropdown1, create_delete_network_children
 
 @app.callback(
     Output("memory-output", "data"),
@@ -659,7 +669,12 @@ def set_update_trace_graph(source,
                            host_value,
                            network_value,
                            snapshot_value):
-    if not submit:
+
+
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "main_page_traceroute_submit":
         raise PreventUpdate
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
