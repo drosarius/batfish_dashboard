@@ -241,6 +241,14 @@ details > summary {
 
 }
 
+.traceroute_failure_switch_div {
+  margin: 0 auto;
+  width: 100px;
+  margin-left: 0px;
+  margin-bottom: 10px;
+
+}
+
 .custom-select > option {
   font-size: 16px;
 }
@@ -259,5 +267,52 @@ fieldset {
   border: 1px solid;
   border-color: #555555;
 
+}
+
+#traceroute_dst {
+  width: 300px;
+
+}
+
+
+#traceroute_dst > div > div {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px
+
+}
+
+#traceroute_dst_type_dropdown > div > div {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  color: ghostwhite;
+  background-color: #555555;
+  font-size: 12px;
+}
+#react-select-8--value-item {
+  color: ghostwhite;
+  font-size: 12px;
+
+}
+
+#traceroute_dst_type_dropdown {
+  width: 100px;
+
+}
+
+#traceroute_src_interface {
+  width: 300px;
+
+}
+
+
+#traceroute_src_interface > div > div {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px
+
+}
+
+.traceroute_dst_input {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px
 }
 

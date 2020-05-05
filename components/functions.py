@@ -210,16 +210,18 @@ def get_flow_details(result_flow, direction):
 trace_template = """
 {{ STEP }}. node: {{ NODE }}
   RECEIVED({{ RECEIVED }})
+  {{ NO_ROUTE | _line_ | contains("NO_ROUTE")}}
   PERMITTED({{ INGRESS_INT }} ({{ REASON }}))
   PERMITTED(~{{ VSYS }}~{{ INGRESS_ZONE }}~{{ REASON }}~)
   FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
   PERMITTED(~{{ EGRESS_INT }}~{{ ACL_NAME }}~ ({{ REASON }}))
   SETUP_SESSION(Incoming Interfaces: [{{ EGRESS_ACL }}], Action: {{ ACTION }}, Match Criteria: [ipProtocol={{ MATCH_PROTOCOL }}, srcIp={{ MATCH_SRC_IP }}, dstIp={{ MATCH_DST_IP }}, srcPort={{ MATCH_SRC_PORT }}, dstPort={{ MATCH_DST_PORT }}])
   TRANSMITTED({{ TRANSMITTED }})
+  EXITS_NETWORK(Output Interface: {{ EXIT_NETWORK_INTERFACE }}, Resolved Next Hop IP: 8.8.8.8)
   ACCEPTED({{ ACCEPTED }})
   DENIED({{ DENIED }} ({{ REASON }}))
 """
-def get_traceroute_details(direction, result, bidir):
+def get_traceroute_details(direction, result, bidir, chaos=False):
     """
 
     :param direction:
@@ -248,8 +250,13 @@ def get_traceroute_details(direction, result, bidir):
             traces = result.Reverse_Traces[0]
             children.append(get_flow_details(result.Reverse_Flow, "Reverse Flow"))
     else:
-        traces = result.Traces[0]
-        children.append(get_flow_details(result.Flow, "Flow"))
+        if chaos:
+            traces = result.Traces[0]
+            children.append(get_flow_details(result.Flow, "Chaos Flow"))
+
+        else:
+            traces = result.Traces[0]
+            children.append(get_flow_details(result.Flow, "Flow"))
 
 
 
@@ -285,6 +292,7 @@ def get_traceroute_details(direction, result, bidir):
                 trace = result.Reverse_Traces[0][count]
         else:
             trace = result.Traces[0][count]
+
 
         parser = ttp(data=str(trace), template=trace_template)
         parser.parse()
@@ -355,6 +363,10 @@ def get_traceroute_details(direction, result, bidir):
 
     return [create_traceroute_graph(get_elements(nodes, trace_edges, max_value, node_list),
                                    stylesheet), children]
+
+
+# def get_nodes_and_interfaces_to_alter(nodes, selected_node=None):
+
 
 SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"

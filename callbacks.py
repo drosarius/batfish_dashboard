@@ -22,6 +22,7 @@ import dash_bootstrap_components as dbc
     Output('cytoscape-mouseoverNodeData-output', 'children'),
     [Input('cytoscape', 'mouseoverNodeData')])
 def displayTapNodeData(data):
+
     if data:
         return "You recently hovered over the device: " + data['label']
 
@@ -572,20 +573,48 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
                             dbc.InputGroup(
                             [
                             dbc.InputGroupAddon("Source", addon_type="prepend"),
-                                dbc.Select(
-                                    id="main_page_traceroute_src",
-                                    options=interfaces
-                                ),
+
+                            dcc.Dropdown(
+                                id="traceroute_src_interface",
+                                placeholder='Select Source',
+                                options=interfaces,
+
+                            )
+
+
+
 
                             ]),
                         ),
                         dbc.Col(
                             dbc.InputGroup(
                             [
-                                dbc.InputGroupAddon("Destination", addon_type="prepend"),
-                                dbc.Select(
-                                    id="main_page_traceroute_dst",
-                                    options=interfaces
+
+                                html.Div(
+                                    id="traceroute_dst_type_dropdown_div",
+                                    children=[
+                                        dcc.Dropdown(
+                                            id="traceroute_dst_type_dropdown",
+                                            options=[{'label': 'IP','value': 'IP'},
+                                                    {'label': 'Interface','value': 'Interface'}],
+                                            value="Interface",
+
+                                        )
+                                    ],
+
+                                ),
+
+                                html.Div(
+                                    id="traceroute_dst_input",
+                                    children=[
+                                        dcc.Dropdown(
+                                            id="traceroute_dst",
+                                            placeholder='Select Destination',
+                                            options=interfaces,
+
+                                        )
+                                    ],
+
                                 ),
 
                             ]),
@@ -607,12 +636,20 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
                                 ],
 
                         ),
+
                         dbc.Col(
                             html.Div(
-                                dbc.Button("Trace!", id="main_page_traceroute_submit")),
-                        )
+                                dbc.Button("Trace!",
+                                           id="main_page_traceroute_submit",
+                                           disabled=True)),
+                        ),
+
+
+
 
                     ]),
+                    dbc.Row(id="traceroute-alter-node"),
+
                 ],
             ),
         ),
@@ -632,6 +669,9 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
 
                  ]),
 
+            html.Fieldset(
+                id="chaos_traceroute_fieldset"),
+
 
 
 
@@ -647,15 +687,13 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
     [Output("main_page_forward_traceroute_graph", "children"),
      Output("main_page_forward_traceroute_collapse", "children"),
      Output("main_page_reverse_traceroute_graph", "children"),
-     Output("main_page_reverse_traceroute_collapse", "children")
+     Output("main_page_reverse_traceroute_collapse", "children"),
      ],
     [
-
-        Input("main_page_traceroute_src", "value"),
-        Input("main_page_traceroute_dst", "value"),
+        Input("traceroute_src_interface", "value"),
+        Input("traceroute_dst", "value"),
         Input("main_page_traceroute_submit", "n_clicks"),
         Input("main_page_traceroute_bidir_switch", "on"),
-
 
     ],
     [State("batfish_host_input", "value"),
@@ -678,8 +716,7 @@ def set_update_trace_graph(source,
         raise PreventUpdate
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
-    batfish.set_snapshot(snapshot_value)
-    result = batfish.traceroute(source, destination, bidir)
+    result = batfish.traceroute(source, destination, bidir, snapshot_value)
     reverse_flow_graph = []
     reverse_flow_traces = []
 
@@ -690,10 +727,289 @@ def set_update_trace_graph(source,
         reverse_flow_details = get_traceroute_details('reverse', result, True)
         reverse_flow_graph = reverse_flow_details[0]
         reverse_flow_traces = reverse_flow_details[1]
+
     else:
         forward_flow_details = get_traceroute_details('forward', result, False)
         forward_flow_graph = forward_flow_details[0]
         forward_flow_traces = forward_flow_details[1]
 
-    return forward_flow_graph, forward_flow_traces, reverse_flow_graph, reverse_flow_traces
+    return forward_flow_graph, forward_flow_traces, reverse_flow_graph, reverse_flow_traces,
+
+#Fail nodes and interfaces
+
+@app.callback(
+    [Output('traceroute-alter-node', 'children'),
+     Output('chaos_traceroute_fieldset', 'children'),
+     Output('traceroute_failure_switch', 'disabled'),
+     Output('traceroute_failure_switch', 'on')],
+    [Input('traceroute-cytoscape', 'tapNodeData'),
+     Input('traceroute-cytoscape', 'elements')],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")]
+)
+def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network, original_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if node_data == None:
+        raise PreventUpdate
+
+    if node_data:
+        node = node_data["id"]
+        traceroute_nodes = []
+        try:
+            for traceroute_node in graph_elements:
+                traceroute_nodes.append(traceroute_node['data']['label'])
+        except KeyError:
+            pass
+
+
+        batfish = Batfish(batfish_host)
+        batfish.set_network(batfish_network)
+        batfish.set_snapshot(original_snapshot)
+
+        batfish_df = batfish.get_info("nodeProperties")
+        batfish_df = batfish_df.set_index('Node')
+
+
+        nodes_dict = [{'label': node,
+                       'value': node}
+                      for node in set(traceroute_nodes)]
+
+        interfaces = batfish_df.loc[node].at['Interfaces']
+
+        interfaces_dict = [{'label': '',
+                       'value': ''}]
+
+        interfaces_dict += [{'label': interface,
+                       'value': interface}
+                      for interface in interfaces]
+
+        form_children = [
+            dbc.Col(
+                dbc.InputGroup(
+                    [
+                        dbc.InputGroupAddon("Deactivate Node", addon_type="prepend"),
+                        dbc.Select(
+                            id="traceroute_deactivate_node",
+                            options=nodes_dict,
+                            value=node,
+                        ),
+
+                    ]),
+            ),
+
+            dbc.Col(
+                id="traceroute_deactivate_interface_col",
+                children=[
+                    dbc.InputGroup(
+                        [
+                            dbc.InputGroupAddon("Deactivate Interface",
+                                                addon_type="prepend"),
+                            dbc.Select(
+                                id="traceroute_deactivate_interface",
+                                options=interfaces_dict,
+                                value='',
+                            ),
+
+                        ]),
+                ],
+
+            ),
+            dbc.Col(
+                html.Div(
+                    dbc.Button("Chaos!", id="chaos_traceroute_submit")),
+            ),
+            dbc.Col(
+                width=1,
+                children=[
+                    html.Div(
+                        className="traceroute_failure_switch_div",
+                        children=[
+                            daq.PowerButton(
+                                id='traceroute_failure_switch',
+                                on=True,
+                                label="Turn Off Chaos?",
+                                labelPosition="top",
+                            ),
+
+                        ]),
+                ],
+
+            ),
+        ]
+
+        fieldset_children = [html.Legend("Chaos Trace Route"),
+                 html.Div(id="chaos_traceroute_graph"),
+                 html.Div(id="chaos_traceroute_collapse"),
+
+                 ]
+
+        return form_children, fieldset_children, False, True
+
+@app.callback(
+    Output('traceroute_deactivate_interface', 'options'),
+    [Input('traceroute_deactivate_node', 'value')],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")]
+)
+def display_interfaces_for_node(deactivated_node, batfish_host,
+                       batfish_network, original_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+
+    if button_id != "traceroute_deactivate_node":
+        raise PreventUpdate
+
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.set_snapshot(original_snapshot)
+
+    batfish_df = batfish.get_info("nodeProperties")
+    batfish_df = batfish_df.set_index('Node')
+
+
+    interfaces = batfish_df.loc[deactivated_node].at['Interfaces']
+
+    interfaces_dict = [{'label': '',
+                        'value': ''}]
+
+    interfaces_dict += [{'label': interface,
+                         'value': interface}
+                        for interface in interfaces]
+    options = interfaces_dict
+    return options
+
+@app.callback(
+    [Output("chaos_traceroute_graph", "children"),
+     Output("chaos_traceroute_collapse", "children"),
+     ],
+    [
+        Input("traceroute_src_interface", "value"),
+        Input("traceroute_dst", "value"),
+        Input("chaos_traceroute_submit", "n_clicks"),
+        Input('traceroute_deactivate_node', 'value'),
+        Input('traceroute_deactivate_interface', 'value')
+
+    ],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")],
+)
+def set_chaos_trace_graph(source,
+                           destination,
+                           submit,
+                           deactivated_node,
+                           deactivated_interface,
+                           host_value,
+                           network_value,
+                           snapshot_value):
+
+
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    deactivated_nodes = []
+    deactivated_interfaces = []
+
+    if button_id != "chaos_traceroute_submit":
+        raise PreventUpdate
+    batfish = Batfish(host_value)
+    batfish.set_network(network_value)
+    reference_snapshot = snapshot_value + "_FAIL"
+    bidir = False
+    deactivated_nodes.append(deactivated_node)
+    deactivated_interfaces.append(deactivated_interface)
+    batfish.network_failure(snapshot_value, reference_snapshot, deactivated_nodes, deactivated_interfaces)
+    result = batfish.traceroute(source, destination, bidir, reference_snapshot)
+    chaos_flow_details = get_traceroute_details('forward', result, False, True)
+    chaos_flow_graph = chaos_flow_details[0]
+    chaos_flow_traces = chaos_flow_details[1]
+
+    return chaos_flow_graph, chaos_flow_traces
+
+
+@app.callback(
+    Output('main_page_traceroute_bidir_switch', 'on'),
+    [Input("traceroute_failure_switch", "on")],
+)
+def display_interfaces_for_node(chaos_switch):
+    if chaos_switch:
+        return False
+
+
+@app.callback(
+    [Output('traceroute-alter-node', 'children'),
+     Output('chaos_traceroute_fieldset', 'children')],
+    [Input("traceroute_failure_switch", "on")],
+)
+def display_interfaces_for_node(chaos_switch):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+
+    if button_id != "traceroute_failure_switch":
+        raise PreventUpdate
+
+    children = []
+    fieldset_children = []
+    if not chaos_switch:
+        return children, fieldset_children
+
+
+
+@app.callback(
+    Output('traceroute_dst_input', 'children'),
+    [Input("traceroute_dst_type_dropdown", "value")],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")],
+)
+def set_dst_type_input(dst_type, host_value, network_value, snapshot_value):
+
+    if not dst_type:
+        raise PreventUpdate
+
+    batfish = Batfish(host_value)
+    batfish.set_network(network_value)
+    batfish.set_snapshot(snapshot_value)
+
+    if dst_type == 'Interface':
+        batfish_df = batfish.get_layer3_edges()
+        options = [str(x) for x in batfish_df["Interface"]]
+        interfaces = [{'label': interface,
+                       'value': interface}
+                      for interface in options]
+
+        children = dcc.Dropdown(
+                                id="traceroute_dst",
+                                placeholder='Select Destination',
+                                options=interfaces,
+
+                            )
+    else:
+
+        children = dcc.Input(id="traceroute_dst", type="text", placeholder="Input IP Address", className="traceroute_dst_ip_input",
+                             style= dict(borderTopLeftRadius = "0px",
+                                         borderBottomLeftRadius = "0px",
+                                         height="34px")),
+
+    return children
+
+
+@app.callback(
+    Output('main_page_traceroute_submit', 'disabled'),
+    [Input("traceroute_src_interface", "value"),
+     Input("traceroute_dst", "value")],
+)
+def set_dst_type_input(src, dst):
+
+
+    if src == None or dst == None:
+      return True
+    return False
+
+
 
