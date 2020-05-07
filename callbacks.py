@@ -17,7 +17,6 @@ from app import app
 import dash_bootstrap_components as dbc
 
 
-
 @app.callback(
     Output('cytoscape-mouseoverNodeData-output', 'children'),
     [Input('cytoscape', 'mouseoverNodeData')])
@@ -25,6 +24,7 @@ def displayTapNodeData(data):
 
     if data:
         return "You recently hovered over the device: " + data['label']
+
 
 @app.callback(
     Output('cytoscape-mouseoverEdgeData-output', 'children'),
@@ -38,6 +38,7 @@ def displayTapEdgeData(data):
         except KeyError:
             return "You recently hovered over the edge between: " + data[
                 'source'] + ' ' + " and " + data['target']
+
 
 @app.callback(
     Output("batfishhost-collapse", "is_open"),
@@ -53,13 +54,14 @@ def batfish_host_toggle_collapse(n, submit_button, is_open):
         return not is_open
     return is_open
 
+
 @app.callback(
     Output("batfish-network-output", "children"),
     [Input("create-network-form", "value"),
      Input("create_network_submit_button", "n_clicks")],
     [State("batfish_host_input", "value")],
 )
-def create_network(network_name,submit,batfish_host):
+def create_network(network_name, submit, batfish_host):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -81,6 +83,7 @@ def create_network_toggle_collapse(n, submit_button, is_open):
     if submit_button:
         return not is_open
     return is_open
+
 
 @app.callback(
     Output("batfish-host-output", "children"),
@@ -105,7 +108,6 @@ def delete_network(submit, delete_network, batfish_host):
         raise PreventUpdate
     batfish = Batfish(batfish_host)
     batfish.delete_network(delete_network)
-
 
 
 @app.callback(
@@ -180,12 +182,14 @@ def get_batfish_networks(n, value):
     ]
     return dropdown2, dropdown1, create_delete_network_children
 
+
 @app.callback(
     Output("memory-output", "data"),
     [Input("select-network-button", "value")]
 )
 def test(value):
     return value
+
 
 @app.callback(
     Output("select-snapshot-div", "children"),
@@ -209,12 +213,14 @@ def set_batfish_snapshot(host_value, network_value):
     ),
     return dropdown
 
+
 @app.callback(
     Output("hidden_div", "children"),
     [Input("select-network-button", "value")]
 )
 def set_hidden_div(value):
     return value
+
 
 @app.callback(Output('cytoscape', 'layout'),
                    [Input('dropdown-update-layout', 'value'),
@@ -232,6 +238,7 @@ def update_layout(layout, value):
         'name': layout,
         'animate': True
     }
+
 
 @app.callback(Output('breadthfirst-roots', 'children'),
                    [Input('dropdown-update-layout', 'value'),
@@ -272,6 +279,7 @@ def add_dropdown_for_breadfirst_roots(layout, nodes):
         ),
         return dropdown
 
+
 @app.callback(Output('create_snapshot_modal', 'is_open'),
                    [Input('create-snapshot-button', 'n_clicks')],
                    [State("create_snapshot_modal", "is_open")], )
@@ -279,6 +287,7 @@ def create_snapshot_modal(n, is_open):
     if n:
         return not is_open
     return is_open
+
 
 @app.callback([Output('output-data-upload', 'children'),
                Output('create-snapshot-name', 'invalid')],
@@ -396,7 +405,6 @@ def create_snapshot_modal(device_configs_upload_content,
     return all_children, False
 
 
-
 @app.callback(
     Output("delete_snapshot_hidden", "children"),
     [Input("modal-select-network-button", "value"),
@@ -404,7 +412,7 @@ def create_snapshot_modal(device_configs_upload_content,
      Input("delete_snapshot_dropdown", "value")],
     [State("batfish_host_input", "value")]
 )
-def delete_snapshot(batfish_network,submit, delete_snapshot, batfish_host):
+def delete_snapshot(batfish_network, submit, delete_snapshot, batfish_host):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if not submit:
@@ -413,7 +421,6 @@ def delete_snapshot(batfish_network,submit, delete_snapshot, batfish_host):
         batfish = Batfish(batfish_host)
         batfish.set_network(batfish_network)
         batfish.delete_snapshot(delete_snapshot)
-
 
 
 @app.callback(
@@ -506,6 +513,7 @@ def ask_a_question_modal_table(question, host_value, network_value,
     )
     return children
 
+
 @app.callback(
     Output("placeholder-for-graph", "children"),
     [
@@ -516,6 +524,7 @@ def set_update_graph(value):
     if not value:
         raise PreventUpdate
     return html.Div(id='graph-type-tabs-content')
+
 
 @app.callback(
     Output("graph-type-tabs-content", "children"),
@@ -700,9 +709,7 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
     ),
 
 
-
-
-############################ Trace Route ####################################
+############################ Trace Route ##############################
 @app.callback(
     [Output("main_page_forward_traceroute_graph", "children"),
      Output("main_page_forward_traceroute_collapse", "children"),
@@ -885,6 +892,7 @@ def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network, ori
 
         return form_children, fieldset_children, False, True
 
+
 @app.callback(
     Output('traceroute_deactivate_interface', 'options'),
     [Input('traceroute_deactivate_node', 'value')],
@@ -919,6 +927,7 @@ def display_interfaces_for_node(deactivated_node, batfish_host,
                         for interface in interfaces]
     options = interfaces_dict
     return options
+
 
 @app.callback(
     [Output("chaos_traceroute_graph", "children"),
@@ -996,7 +1005,6 @@ def display_interfaces_for_node(chaos_switch):
         return children, fieldset_children
 
 
-
 @app.callback(
     Output('traceroute_dst_input', 'children'),
     [Input("traceroute_dst_type_dropdown", "value")],
@@ -1043,9 +1051,8 @@ def set_dst_type_input(dst_type, host_value, network_value, snapshot_value):
 )
 def set_dst_type_input(src, dst):
 
-
-    if src == None or dst == None:
-      return True
+    if src is None or dst is None:
+        return True
     return False
 
 

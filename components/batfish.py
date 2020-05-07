@@ -12,7 +12,6 @@ pd.set_option('display.max_colwidth', -1)
 pd.options.display.float_format = '{:,}'.format
 
 
-
 class Batfish():
 
     def __init__(self, batfish_host):
@@ -42,7 +41,7 @@ class Batfish():
             snapshotlist = ["None"]
         return snapshotlist
 
-    def init_snapshot(self,snapshot_name, overwrite=True):
+    def init_snapshot(self, snapshot_name, overwrite=True):
         snapshot_dir = "assets/snapshot_holder/"
         bf_init_snapshot(snapshot_dir, name=str(snapshot_name),
                          overwrite=overwrite)
@@ -66,16 +65,39 @@ class Batfish():
 
     def traceroute(self, src, dst, bidir,snapshot, src_ip=None, dst_ip=None):
         if bidir:
-            result = bfq.bidirectionalTraceroute(startLocation=src, headers=HeaderConstraints(dstIps=dst)).answer(snapshot=snapshot).frame()
+            result = bfq.bidirectionalTraceroute(startLocation=src,
+                                                 headers=
+                                                 HeaderConstraints(dstIps=
+                                                                   dst))\
+                .answer(snapshot=snapshot)\
+                .frame()
         else:
-            result = bfq.traceroute(startLocation=src, headers=HeaderConstraints(dstIps=dst)).answer(snapshot=snapshot).frame()
+            result = bfq.traceroute(startLocation=src,
+                                    headers=
+                                    HeaderConstraints(dstIps=dst))\
+                .answer(snapshot=snapshot)\
+                .frame()
         return result
 
-    def network_failure(self, base_snapshot, reference_snapshot, deactivate_node, deactivated_int, overwrite=True):
+    def network_failure(self,
+                        base_snapshot,
+                        reference_snapshot,
+                        deactivate_node,
+                        deactivated_int,
+                        overwrite=True):
         if '' in deactivated_int:
-            bf_fork_snapshot(base_snapshot, reference_snapshot, deactivate_nodes=deactivate_node, overwrite=overwrite)
+            bf_fork_snapshot(base_snapshot,
+                             reference_snapshot,
+                             deactivate_nodes=deactivate_node,
+                             overwrite=overwrite)
         else:
-            bf_fork_snapshot(base_snapshot, reference_snapshot, deactivate_interfaces=[Interface(deactivate_node[0], deactivated_int[0])], overwrite=overwrite)
+            bf_fork_snapshot(base_snapshot,
+                             reference_snapshot,
+                             deactivate_interfaces=[
+                                 Interface(deactivate_node[0],
+                                           deactivated_int[0])
+                             ],
+                             overwrite=overwrite)
 
 
 

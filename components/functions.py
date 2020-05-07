@@ -30,7 +30,6 @@ def get_bgp_edges(batfish_df):
         if edge[::-1] not in new_edges:
             new_edges.append(edge)
 
-
     new_edges = list(set(tuple(sub) for sub in new_edges))
     edges = [
         {'data': {'source': source, 'target': target}}
@@ -142,6 +141,7 @@ def create_graph(elements):
 
     return children
 
+
 def create_traceroute_graph(elements, stylesheet):
     children = [
         cyto.Cytoscape(
@@ -156,7 +156,7 @@ def create_traceroute_graph(elements, stylesheet):
             elements=elements,
             stylesheet=stylesheet,
             layout={'name': 'preset',
-                    'padding':60,
+                    'padding': 60,
                     }
         ),
     ]
@@ -170,8 +170,10 @@ def get_elements(nodes, trace_edges, max_value, node_list):
     edges = [
         {'data': {'source': source, 'target': target}, 'classes': trace}
         for trace, source, target, in trace_edges]
-    nodes = [{'data': {'id': device, 'label': device},'position': {'x': position[0] * 200, 'y': position[1] * 200}, 'classes':'Router'} for device, position in
-             nodes.items()]
+    nodes = [{'data': {'id': device, 'label': device},
+              'position': {'x': position[0] * 200, 'y': position[1] * 200},
+              'classes':'Router'}
+             for device, position in nodes.items()]
     start_node = [
         {'data': {'id': start, 'label': start},
          'position': {'x': 0, 'y': 0}}]
@@ -181,9 +183,12 @@ def get_elements(nodes, trace_edges, max_value, node_list):
 
     return all_nodes + edges
 
+
 flow_template = """
 start={{ START }} [{{ SRC }}->{{ DST }} {{ PROTOCOL }} length={{ LENGTH }}]
 """
+
+
 def get_flow_meta_data(flow_data):
 
     parser = ttp(data=str(flow_data[0]), template=flow_template)
@@ -193,6 +198,7 @@ def get_flow_meta_data(flow_data):
     for item in flow_parsed_results.items():
         flow_meta_data = flow_meta_data + item[0] + ': ' + item[1] + '\n'
     return flow_meta_data
+
 
 def get_flow_details(result_flow, direction):
     flow = html.Div(className="main_page_traceroute_flow_details",
@@ -207,6 +213,7 @@ def get_flow_details(result_flow, direction):
                              ))])
                     ])
     return flow
+
 
 trace_template = """
 {{ STEP }}. node: {{ NODE }}
@@ -223,6 +230,8 @@ trace_template = """
   ACCEPTED({{ ACCEPTED }})
   DENIED({{ DENIED }} ({{ REASON }}))
 """
+
+
 def get_traceroute_details(direction, result, bidir, chaos=False):
     """
 
@@ -260,8 +269,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             traces = result.Traces[0]
             children.append(get_flow_details(result.Flow, "Flow"))
 
-
-
     stylesheet = [
         {
             'selector': 'edge',
@@ -296,7 +303,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
                 trace = result.Reverse_Traces[0][count]
         else:
             trace = result.Traces[0][count]
-
 
         parser = ttp(data=str(trace), template=trace_template)
         parser.parse()
@@ -365,11 +371,9 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
         del colors[0]
         stylesheet = stylesheet + trace_style
 
-    return [create_traceroute_graph(get_elements(nodes, trace_edges, max_value, node_list),
-                                   stylesheet), children]
-
-
-# def get_nodes_and_interfaces_to_alter(nodes, selected_node=None):
+    return [create_traceroute_graph(
+        get_elements(nodes, trace_edges, max_value, node_list), stylesheet),
+        children]
 
 
 SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
@@ -377,6 +381,7 @@ SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 SNAPSHOT_IPTABLES_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 SNAPSHOT_AWS_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+
 
 def save_file(config_type, name, content):
     data = content.encode("utf8").split(b";base64,")[1]
@@ -394,9 +399,10 @@ def save_file(config_type, name, content):
     with open(os.path.join(directory, name), "wb") as fp:
         fp.write(base64.decodebytes(data))
 
+
 def delete_old_files():
     try:
-        for subdir, dirs, files in os.walk("assets\snapshot_holder"):
+        for subdir, dirs, files in os.walk(r"assets\snapshot_holder"):
             for file in files:
                 filePath = os.path.join(subdir, file)
                 os.unlink(filePath)
