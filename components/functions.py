@@ -76,6 +76,7 @@ def getedges(batfish_df):
                     x_test[1] = re.sub("^GigabitEthernet", "Ge", x_test[1])
                     x_test[1] = re.sub("^port-channel", "po", x_test[1])
                     x_test[1] = re.sub("^Port-Channel", "po", x_test[1])
+                    x_test[1] = re.sub(r"([^-]+-\S{4})(.*)",r"\1", x_test[1])
                     test += x_test
                 new_new_edges.append(test)
     new_new_edges = list(set(tuple(sub) for sub in new_new_edges))
@@ -113,7 +114,7 @@ def create_graph(elements):
                         'target-text-offset': '50',
                         'text-background-opacity': 1,
                         'text-background-color': '#ffffff',
-                        'text-background-shape': 'rectangle',
+                        'text-background-shape': 'round-rectangle',
                         'text-border-style': 'solid',
                         'text-border-opacity': 1,
                         'text-border-width': '1px',
@@ -214,6 +215,7 @@ trace_template = """
   PERMITTED({{ INGRESS_INT }} ({{ REASON }}))
   PERMITTED(~{{ VSYS }}~{{ INGRESS_ZONE }}~{{ REASON }}~)
   FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
+  TRANSFORMED({{ TRANSFORM_TYPE }} srcIp: {{ SRC_IP }} -> {{ NAT_IP }})
   PERMITTED(~{{ EGRESS_INT }}~{{ ACL_NAME }}~ ({{ REASON }}))
   SETUP_SESSION(Incoming Interfaces: [{{ EGRESS_ACL }}], Action: {{ ACTION }}, Match Criteria: [ipProtocol={{ MATCH_PROTOCOL }}, srcIp={{ MATCH_SRC_IP }}, dstIp={{ MATCH_DST_IP }}, srcPort={{ MATCH_SRC_PORT }}, dstPort={{ MATCH_DST_PORT }}])
   TRANSMITTED({{ TRANSMITTED }})
@@ -271,7 +273,9 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             'selector': 'node',
             'style': {
                 'label': 'data(id)',
-                'text-outline-color': '#ffffff'
+                'text-outline-color': '#ffffff',
+                'background-fit': 'cover',
+
             }
         },
     ]

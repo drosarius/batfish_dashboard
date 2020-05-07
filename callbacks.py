@@ -568,56 +568,82 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
         dbc.Card(
             dbc.CardBody(
                 children=[
-                    dbc.Row([
+                    dbc.Row(
+                        id="traceroute_src_dst_row",
+                        children=[
                         dbc.Col(
-                            dbc.InputGroup(
-                            [
-                            dbc.InputGroupAddon("Source", addon_type="prepend"),
 
-                            dcc.Dropdown(
-                                id="traceroute_src_interface",
-                                placeholder='Select Source',
-                                options=interfaces,
+                            children=[
+                                html.Fieldset(
+                                    id= "traceroute_source_fieldset",
+                                    children =[
+                                        html.Legend("Source"),
+                                         dbc.InputGroup(
+                                             [
+                                                 # dbc.InputGroupAddon("Source",
+                                                 #                     addon_type="prepend"),
 
-                            )
+                                                 dcc.Dropdown(
+                                                     id="traceroute_src_interface",
+                                                     placeholder='Select Source',
+                                                     options=interfaces,
 
+                                                 )
+                                             ]),
 
+                                    ],
 
+                                    ),
+                            ],
 
-                            ]),
                         ),
                         dbc.Col(
-                            dbc.InputGroup(
-                            [
-
-                                html.Div(
-                                    id="traceroute_dst_type_dropdown_div",
+                            children=[
+                                html.Fieldset(
+                                    id="traceroute_dst_fieldset",
                                     children=[
-                                        dcc.Dropdown(
-                                            id="traceroute_dst_type_dropdown",
-                                            options=[{'label': 'IP','value': 'IP'},
-                                                    {'label': 'Interface','value': 'Interface'}],
-                                            value="Interface",
+                                        html.Legend("Destination"),
+                                        dbc.InputGroup(
+                                            [
 
-                                        )
+                                                html.Div(
+                                                    id="traceroute_dst_type_dropdown_div",
+                                                    children=[
+                                                        dcc.Dropdown(
+                                                            id="traceroute_dst_type_dropdown",
+                                                            options=[
+                                                                {'label': 'IP',
+                                                                 'value': 'IP'},
+                                                                {
+                                                                    'label': 'Interface',
+                                                                    'value': 'Interface'}],
+                                                            value="Interface",
+
+                                                        )
+                                                    ],
+
+                                                ),
+
+                                                html.Div(
+                                                    id="traceroute_dst_input",
+                                                    children=[
+                                                        dcc.Dropdown(
+                                                            id="traceroute_dst",
+                                                            placeholder='Select Destination',
+                                                            options=interfaces,
+
+                                                        )
+                                                    ],
+
+                                                ),
+
+                                            ]),
+
                                     ],
 
                                 ),
+                            ],
 
-                                html.Div(
-                                    id="traceroute_dst_input",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="traceroute_dst",
-                                            placeholder='Select Destination',
-                                            options=interfaces,
-
-                                        )
-                                    ],
-
-                                ),
-
-                            ]),
                         ),
                         dbc.Col(
                                 width=1,
@@ -644,9 +670,6 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
                                            disabled=True)),
                         ),
 
-
-
-
                     ]),
                     dbc.Row(id="traceroute-alter-node"),
 
@@ -671,9 +694,6 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value,):
 
             html.Fieldset(
                 id="chaos_traceroute_fieldset"),
-
-
-
 
         ],
 
@@ -749,8 +769,7 @@ def set_update_trace_graph(source,
      State("select-snapshot-button", "value")]
 )
 def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network, original_snapshot):
-    ctx = dash.callback_context
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
 
     if node_data == None:
         raise PreventUpdate
@@ -788,32 +807,49 @@ def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network, ori
 
         form_children = [
             dbc.Col(
-                dbc.InputGroup(
-                    [
-                        dbc.InputGroupAddon("Deactivate Node", addon_type="prepend"),
-                        dbc.Select(
-                            id="traceroute_deactivate_node",
-                            options=nodes_dict,
-                            value=node,
-                        ),
+                children=[
+                    html.Fieldset(
+                        id="traceroute_source_fieldset",
+                        children=[
+                            html.Legend("Deactivate Node"),
+                            dbc.InputGroup(
+                                [
+                                    dbc.Select(
+                                        id="traceroute_deactivate_node",
+                                        options=nodes_dict,
+                                        value=node,
+                                    ),
 
-                    ]),
+                                ]),
+
+                        ],
+
+                    ),
+                ],
+
             ),
 
             dbc.Col(
                 id="traceroute_deactivate_interface_col",
                 children=[
-                    dbc.InputGroup(
-                        [
-                            dbc.InputGroupAddon("Deactivate Interface",
-                                                addon_type="prepend"),
-                            dbc.Select(
-                                id="traceroute_deactivate_interface",
-                                options=interfaces_dict,
-                                value='',
-                            ),
+                    html.Fieldset(
+                        id="traceroute_source_fieldset",
+                        children=[
+                            html.Legend("Deactivate Interface"),
+                            dbc.InputGroup(
+                                [
+                                    dbc.Select(
+                                        id="traceroute_deactivate_interface",
+                                        options=interfaces_dict,
+                                        value='',
+                                    ),
 
-                        ]),
+                                ]),
+
+                        ],
+
+                    ),
+
                 ],
 
             ),
@@ -830,6 +866,7 @@ def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network, ori
                             daq.PowerButton(
                                 id='traceroute_failure_switch',
                                 on=True,
+                                size=30,
                                 label="Turn Off Chaos?",
                                 labelPosition="top",
                             ),
@@ -994,7 +1031,7 @@ def set_dst_type_input(dst_type, host_value, network_value, snapshot_value):
         children = dcc.Input(id="traceroute_dst", type="text", placeholder="Input IP Address", className="traceroute_dst_ip_input",
                              style= dict(borderTopLeftRadius = "0px",
                                          borderBottomLeftRadius = "0px",
-                                         height="34px")),
+                                         height="36px")),
 
     return children
 
@@ -1010,6 +1047,8 @@ def set_dst_type_input(src, dst):
     if src == None or dst == None:
       return True
     return False
+
+
 
 
 

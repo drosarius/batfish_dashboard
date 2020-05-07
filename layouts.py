@@ -33,7 +33,8 @@ batfish_questions = ["ipOwners",
                      "vxlanVniProperties",
                      "vxlanEdges",
                      "evpnL3VniProperties",
-                     "detectLoops"]
+                     "detectLoops",
+                     "ipsecSessionStatus"]
 
 
 main_page_graph_tab_selected = dict(
@@ -241,6 +242,7 @@ main_page_layout = html.Div(id='main-page', children=[
                 ),
                 html.Div(id='breadthfirst-roots',
                          children=[]),
+
 
             ]),
         html.Div(

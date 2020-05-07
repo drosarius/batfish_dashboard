@@ -25,7 +25,7 @@ body {
 
 
 .Router {
-  background-image: url("assets\img\Router.png");
+  background-image: url("\assets\img\router.svg");
 }
 
 .main_page_button_div {
@@ -237,7 +237,6 @@ details > summary {
   margin: 0 auto;
   width: 100px;
   margin-left: 0px;
-  margin-bottom: 10px;
 
 }
 
@@ -245,7 +244,6 @@ details > summary {
   margin: 0 auto;
   width: 100px;
   margin-left: 0px;
-  margin-bottom: 10px;
 
 }
 
@@ -272,6 +270,7 @@ fieldset {
 #traceroute_dst {
   width: 300px;
 
+
 }
 
 
@@ -284,15 +283,15 @@ fieldset {
 #traceroute_dst_type_dropdown > div > div {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
-  color: ghostwhite;
-  background-color: #555555;
+  /*color: ghostwhite;*/
+  background-color: #E9ECEF;
   font-size: 12px;
 }
-#react-select-8--value-item {
-  color: ghostwhite;
-  font-size: 12px;
+/*#react-select-8--value-item {*/
+/*  color: ghostwhite;*/
+/*  font-size: 12px;*/
 
-}
+/*}*/
 
 #traceroute_dst_type_dropdown {
   width: 100px;
@@ -301,6 +300,7 @@ fieldset {
 
 #traceroute_src_interface {
   width: 300px;
+  margin-left: 50px;
 
 }
 
@@ -316,3 +316,31 @@ fieldset {
   border-bottom-left-radius: 0px
 }
 
+fieldset {
+  border:none;
+
+}
+fieldset > legend {
+  text-align: center;
+  width: auto;
+}
+
+#traceroute_source_fieldset {
+  width: 400px;
+}
+
+#traceroute-alter-node {
+  padding: 10px;
+}
+
+#traceroute_dst_fieldset {
+  width: 400px;
+}
+
+#traceroute_src_dst_row {
+  align-items: flex-end;
+}
+
+#traceroute-alter-node {
+  align-items: flex-end;
+}
