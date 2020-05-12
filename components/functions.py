@@ -103,7 +103,6 @@ def create_graph(elements):
                 {
                     'selector': 'edge',
                     'style': {
-                        # The default curve style does not work with certain arrows
                         'source-text-rotation': 'autorotate',
                         'edge-text-rotation': 'autorotate',
                         'target-text-rotation': 'autorotate',
@@ -113,7 +112,7 @@ def create_graph(elements):
                         'target-text-offset': '50',
                         'text-background-opacity': 1,
                         'text-background-color': '#ffffff',
-                        'text-background-shape': 'round-rectangle',
+                        'textBackgroundShape': 'round-rectangle',
                         'text-border-style': 'solid',
                         'text-border-opacity': 1,
                         'text-border-width': '1px',
@@ -125,7 +124,6 @@ def create_graph(elements):
                 {
                     'selector': 'node',
                     'style': {
-                        # The default curve style does not work with certain arrows
                         'label': 'data(id)',
                         'text-outline-color': '#ffffff'
 

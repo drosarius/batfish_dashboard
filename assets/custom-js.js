@@ -1,11 +1,5 @@
 
-var el = document.getElementById("create_snapshot_submit_button")
+var el = document.getElementById("cytoscape")
 console.log("Yay!")
-if(el){
-    console.log("Yay!")
-    el.addEventListener("click", function() {
-    document.getElementById("create-snapshot-name").value = "";
-    console.log("Yay!")
-    // Do what you want with the value
-});
-}
+console.log(el.valueOf())
+

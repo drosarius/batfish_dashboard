@@ -455,6 +455,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                     )
 
                                 ),
+                                html.Div(id='question-info'),
                                 html.Div(id='ask-a-question-table'),
                             ],
 
