@@ -501,7 +501,7 @@ batfish_questions = {"ipOwners":"For each device, lists the mapping from IPs to 
 
 @app.callback(Output('question-info', 'children'),
               [Input('select-question-button', 'value')])
-def open_ask_a_question_modal(question):
+def question_descriptors(question):
     if not question:
         raise PreventUpdate
 
@@ -709,10 +709,14 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
                                                         label="Bidir",
                                                         labelPosition="left",
                                                     ),
-
+                                                    daq.BooleanSwitch(
+                                                        id='traceroute_advanced_options_switch',
+                                                        on=False,
+                                                        label="Advanced?",
+                                                        labelPosition="left",
+                                                    ),
                                                 ]),
                                         ],
-
                                     ),
 
                                     dbc.Col(
@@ -723,6 +727,7 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
                                     ),
 
                                 ]),
+                            dbc.Row(id="traceroute-advanced_options_row"),
                             dbc.Row(id="traceroute-alter-node"),
 
                         ],
@@ -753,6 +758,112 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
 
 
 ############################ Trace Route ##############################
+
+@app.callback(
+    [Output('traceroute-advanced_options_row', 'children')],
+    [Input('traceroute_advanced_options_switch', 'on')]
+)
+def get_advanced_options_form(advanced_option_sw):
+
+    if advanced_option_sw:
+        hidden = False
+    else:
+        hidden = True
+    children = [
+        html.Div(
+            hidden=hidden,
+            children = [dbc.Form(
+                [
+                    dbc.Col(
+                        children=[
+                            dbc.FormGroup(
+                                [
+                                    html.Fieldset(
+                                        id="traceroute_src_ports_fieldset",
+                                        children=[
+                                            html.Legend("Source Ports"),
+                                            dbc.Input(
+                                                id="traceroute_src_ports",
+                                                placeholder="e.g., 22"),
+                                        ],
+
+                                    ),
+
+                                ],
+                                className="mr-3",
+                            ),
+                        ]),
+
+                    dbc.Col(
+                        children=[
+                            dbc.FormGroup(
+                                [
+                                    html.Fieldset(
+                                        id="traceroute_dst_ports_fieldset",
+                                        children=[
+                                            html.Legend("Destination Port"),
+                                            dbc.Input(
+                                                id="traceroute_dst_ports",
+                                                placeholder="e.g., 22"),
+                                        ],
+
+                                    ),
+
+                                ],
+                                className="mr-3",
+                            ),
+                        ]),
+
+                    dbc.Col(
+                        children=[
+                            dbc.FormGroup(
+                                [
+                                    html.Fieldset(
+                                        id="traceroute_application_fieldset",
+                                        children=[
+                                            html.Legend("Application"),
+                                            dbc.Input(
+                                                id="traceroute_applications",
+                                                placeholder="e.g., SSH, DNS, SNMP"),
+                                        ],
+
+                                    ),
+
+                                ],
+                                className="mr-3",
+                            ),
+                        ]),
+
+                    dbc.Col(
+                        children=[
+                            dbc.FormGroup(
+                                [
+                                    html.Fieldset(
+                                        id="traceroute_ip_protocol_fieldset",
+                                        children=[
+                                            html.Legend("IP Protocol"),
+                                            dbc.Input(
+                                                id="traceroute_ip_protocols",
+                                                placeholder="e.g., TCP, UDP, ICMP"),
+                                        ],
+
+                                    ),
+                                ],
+                                className="mr-3",
+                            ),
+                        ]),
+
+                ],
+                inline=True,
+            )]
+        )
+    ]
+
+
+    return children
+
+
+
 @app.callback(
     [Output("main_page_forward_traceroute_graph", "children"),
      Output("main_page_forward_traceroute_collapse", "children"),
@@ -764,6 +875,10 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
         Input("traceroute_dst", "value"),
         Input("main_page_traceroute_submit", "n_clicks"),
         Input("main_page_traceroute_bidir_switch", "on"),
+        Input("traceroute_src_ports", "value"),
+        Input("traceroute_dst_ports", "value"),
+        Input("traceroute_applications", "value"),
+        Input("traceroute_ip_protocols", "value"),
 
     ],
     [State("batfish_host_input", "value"),
@@ -774,17 +889,31 @@ def set_update_trace_graph(source,
                            destination,
                            submit,
                            bidir,
+                           src_ports,
+                           dst_ports,
+                           applications,
+                           ip_protocols,
                            host_value,
                            network_value,
-                           snapshot_value):
+                           snapshot_value,
+                           ):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
+
+
     if button_id != "main_page_traceroute_submit":
         raise PreventUpdate
+    src_ports = src_ports.split(',') if src_ports else None
+    dst_ports = dst_ports.split(',') if dst_ports else None
+    applications = applications.split(',') if applications else None
+    ip_protocols = ip_protocols.split(',') if ip_protocols else None
+
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
-    result = batfish.traceroute(source, destination, bidir, snapshot_value)
+    result = batfish.traceroute(source, destination, bidir, snapshot_value,
+                                src_ports, dst_ports, applications,
+                                ip_protocols)
     reverse_flow_graph = []
     reverse_flow_traces = []
 
@@ -891,7 +1020,6 @@ def get_chaos_form(node_data, graph_elements, batfish_host, batfish_network,
                                     ),
 
                                 ]),
-
                         ],
 
                     ),
@@ -975,7 +1103,11 @@ def display_interfaces_for_node(deactivated_node, batfish_host,
         Input("traceroute_dst", "value"),
         Input("chaos_traceroute_submit", "n_clicks"),
         Input('traceroute_deactivate_node', 'value'),
-        Input('traceroute_deactivate_interface', 'value')
+        Input('traceroute_deactivate_interface', 'value'),
+        Input("traceroute_src_ports", "value"),
+        Input("traceroute_dst_ports", "value"),
+        Input("traceroute_applications", "value"),
+        Input("traceroute_ip_protocols", "value"),
 
     ],
     [State("batfish_host_input", "value"),
@@ -987,6 +1119,10 @@ def set_chaos_trace_graph(source,
                           submit,
                           deactivated_node,
                           deactivated_interface,
+                          src_ports,
+                          dst_ports,
+                          applications,
+                          ip_protocols,
                           host_value,
                           network_value,
                           snapshot_value):
@@ -997,6 +1133,11 @@ def set_chaos_trace_graph(source,
 
     if button_id != "chaos_traceroute_submit":
         raise PreventUpdate
+
+    src_ports = src_ports.split(',') if src_ports else None
+    dst_ports = dst_ports.split(',') if dst_ports else None
+    applications = applications.split(',') if applications else None
+    ip_protocols = ip_protocols.split(',') if ip_protocols else None
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
     reference_snapshot = snapshot_value + "_FAIL"
@@ -1005,7 +1146,9 @@ def set_chaos_trace_graph(source,
     deactivated_interfaces.append(deactivated_interface)
     batfish.network_failure(snapshot_value, reference_snapshot,
                             deactivated_nodes, deactivated_interfaces)
-    result = batfish.traceroute(source, destination, bidir, reference_snapshot)
+    result = batfish.traceroute(source, destination, bidir, reference_snapshot,
+                                src_ports, dst_ports, applications, ip_protocols
+                                )
     chaos_flow_details = get_traceroute_details('forward', result, False, True)
     chaos_flow_graph = chaos_flow_details[0]
     chaos_flow_traces = chaos_flow_details[1]

@@ -63,18 +63,25 @@ class Batfish():
         result = bfq.bgpEdges().answer().frame()
         return result
 
-    def traceroute(self, src, dst, bidir,snapshot, src_ip=None, dst_ip=None):
+    def traceroute(self, src, dstIps, bidir,snapshot,
+                   srcPorts=None,
+                   dstPorts =None,
+                   applications=None,
+                   ipProtocols=None,
+                   ):
+        headers = HeaderConstraints(dstIps =dstIps,
+                                    srcPorts=srcPorts,
+                                    dstPorts =dstPorts,
+                                    applications=applications,
+                                    ipProtocols=ipProtocols)
         if bidir:
             result = bfq.bidirectionalTraceroute(startLocation=src,
-                                                 headers=
-                                                 HeaderConstraints(dstIps=
-                                                                   dst))\
+                                                 headers=headers)\
                 .answer(snapshot=snapshot)\
                 .frame()
         else:
             result = bfq.traceroute(startLocation=src,
-                                    headers=
-                                    HeaderConstraints(dstIps=dst))\
+                                    headers=headers)\
                 .answer(snapshot=snapshot)\
                 .frame()
         return result

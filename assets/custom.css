@@ -344,3 +344,7 @@ fieldset > legend {
 #traceroute-alter-node {
   align-items: flex-end;
 }
+
+#traceroute_advanced_options_switch {
+  margin-left: 27px;
+}
