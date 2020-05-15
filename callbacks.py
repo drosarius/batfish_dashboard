@@ -231,11 +231,15 @@ def update_layout(layout, value):
         return {
             'name': layout,
             'animate': True,
-            'roots': value
+            'roots': value,
+            'padding': 60,
+            'spacingFactor': 2.5,
         }
     return {
         'name': layout,
-        'animate': True
+        'animate': True,
+        'padding': 60,
+        'spacingFactor': 2.5,
     }
 
 

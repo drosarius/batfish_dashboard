@@ -16,7 +16,7 @@ def get_bgp_nodes(batfish_df):
     nodes = [
         {
             'data': {'id': device, 'label': device,
-                     'parent': 'AS ' + as_number},
+                     'parent': 'AS ' + as_number}, 'classes': 'bgp_node',
         }
         for device, as_number in list(set(all_nodes))
     ]
@@ -49,7 +49,7 @@ def getparents(batfish_df):
         batfish_df['Remote_AS_Number'])
     parent_nodes = [
         {
-            'data': {'id': 'AS ' + asn, 'label': 'AS ' + asn},
+            'data': {'id': 'AS ' + asn, 'label': 'AS ' + asn}, 'classes': 'parent',
         }
         for asn in list(set(as_numbers))
     ]
@@ -112,12 +112,14 @@ def create_graph(elements):
                         'target-text-offset': '50',
                         'text-background-opacity': 1,
                         'text-background-color': '#ffffff',
-                        'textBackgroundShape': 'round-rectangle',
+                        'text-background-shape': 'roundrectangle',
                         'text-border-style': 'solid',
                         'text-border-opacity': 1,
                         'text-border-width': '1px',
                         'text-border-color': 'darkgray',
+                        'text-background-padding': '3px',
                         'curve-style': 'bezier'
+
 
                     }
                 },
@@ -125,13 +127,38 @@ def create_graph(elements):
                     'selector': 'node',
                     'style': {
                         'label': 'data(id)',
-                        'text-outline-color': '#ffffff'
+                        'text-outline-color': '#ffffff',
+                        'background-image': 'assets/img/Router2.png',
+                        'background-fit': 'cover',
+                        'width': 50,
+                        'height': 50,
+                        'text-background-opacity': 1,
+                        'text-background-color': '#ffffff',
+                        'text-background-shape': 'roundrectangle',
+                        'text-border-style': 'solid',
+                        'text-border-opacity': 1,
+                        'text-border-width': '1px',
+                        'text-border-color': 'darkgray',
+                        'font-weight': 'bold',
+                        'text-background-padding': '5px',
 
+
+
+                    }
+                },
+                {
+                    'selector': '.parent',
+                    'style': {
+                        'background-image': 'none',
+                        'background-color': 'ghostwhite',
+                        'border-color':'#555555',
                     }
                 },
 
             ],
-            layout={'name': 'breadthfirst'
+            layout={'name': 'breadthfirst',
+                    'padding': 60,
+                    'spacingFactor': 2.5,
                     }
         ),
 
@@ -279,7 +306,19 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             'style': {
                 'label': 'data(id)',
                 'text-outline-color': '#ffffff',
+                'background-image': 'assets/img/Router2.png',
                 'background-fit': 'cover',
+                'width': 50,
+                'height': 50,
+                'text-background-opacity': 1,
+                'text-background-color': '#ffffff',
+                'text-background-shape': 'roundrectangle',
+                'text-border-style': 'solid',
+                'text-border-opacity': 1,
+                'text-border-width': '1px',
+                'text-border-color': 'darkgray',
+                'font-weight': 'bold',
+                'text-background-padding': '5px',
 
             }
         },
@@ -375,10 +414,10 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
 
 
 SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
-SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
-SNAPSHOT_IPTABLES_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
-SNAPSHOT_AWS_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
-SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
+SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/hosts"
+SNAPSHOT_IPTABLES_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/iptables"
+SNAPSHOT_AWS_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/aws_configs"
+SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/batfish"
 
 
 def save_file(config_type, name, content):
