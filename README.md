@@ -49,11 +49,12 @@ Enjoy!
 
 ### Trace Route
 
-<img src="/assets/img/trace_route.PNG" width="1000" />
+<img src="/assets/img/trace_routev2.PNG" width="1000" />
 
 
 ## Roadmap
 
 * Chaos Monkey
-* Trace Route with advanced options
 * Ask a Question advanced search
+* Dynamic configuration change for trace route
+* ACL diffs

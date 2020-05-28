@@ -348,3 +348,11 @@ fieldset > legend {
 #traceroute_advanced_options_switch {
   margin-left: 27px;
 }
+
+#chaos_traceroute_tabs {
+  width: 1000px;
+}
+
+#traceroute_chaos_switch {
+  margin-left: 7px;
+}

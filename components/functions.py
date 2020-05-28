@@ -239,24 +239,6 @@ def get_flow_details(result_flow, direction):
                     ])
     return flow
 
-
-trace_template = """
-{{ STEP }}. node: {{ NODE }}
-  RECEIVED({{ RECEIVED }})
-  {{ NO_ROUTE | _line_ | contains("NO_ROUTE")}}
-  PERMITTED({{ INGRESS_INT }} ({{ REASON }}))
-  PERMITTED(~{{ VSYS }}~{{ INGRESS_ZONE }}~{{ REASON }}~)
-  FORWARDED(ARP IP: {{ ARP_IP }}, Output Interface: {{ OUT_INT }}, Routes: [{{ ROUTING_PROTOCOL }} (Network: {{ ROUTE }}, Next Hop IP:{{ NEXT_HOP }})])
-  TRANSFORMED({{ TRANSFORM_TYPE }} srcIp: {{ SRC_IP }} -> {{ NAT_IP }})
-  PERMITTED(~{{ EGRESS_INT }}~{{ ACL_NAME }}~ ({{ REASON }}))
-  SETUP_SESSION(Incoming Interfaces: [{{ EGRESS_ACL }}], Action: {{ ACTION }}, Match Criteria: [ipProtocol={{ MATCH_PROTOCOL }}, srcIp={{ MATCH_SRC_IP }}, dstIp={{ MATCH_DST_IP }}, srcPort={{ MATCH_SRC_PORT }}, dstPort={{ MATCH_DST_PORT }}])
-  TRANSMITTED({{ TRANSMITTED }})
-  EXITS_NETWORK(Output Interface: {{ EXIT_NETWORK_INTERFACE }}, Resolved Next Hop IP: 8.8.8.8)
-  ACCEPTED({{ ACCEPTED }})
-  DENIED({{ DENIED }} ({{ REASON }}))
-"""
-
-
 def get_traceroute_details(direction, result, bidir, chaos=False):
     """
 
@@ -273,26 +255,24 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
     """
 
 
-    nodes = {}
-    node_list = []
-    count = 0
-    trace_edges = []
-    children = []
+
     if bidir:
         if direction == "forward":
             traces = result.Forward_Traces[0]
-            children.append(get_flow_details(result.Forward_Flow, "Forward Flow"))
+            # children.append(get_flow_details(result.Forward_Flow, "Forward Flow"))
         else:
             traces = result.Reverse_Traces[0]
-            children.append(get_flow_details(result.Reverse_Flow, "Reverse Flow"))
+            if traces == []:
+                return [None, None]
+            # children.append(get_flow_details(result.Reverse_Flow, "Reverse Flow"))
     else:
         if chaos:
             traces = result.Traces[0]
-            children.append(get_flow_details(result.Flow, "Chaos Flow"))
+            # children.append(get_flow_details(result.Flow, "Chaos Flow"))
 
         else:
             traces = result.Traces[0]
-            children.append(get_flow_details(result.Flow, "Flow"))
+            # children.append(get_flow_details(result.Flow, "Flow"))
 
     stylesheet = [
         {
@@ -327,30 +307,23 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
     colors = ["red", "blue", "green", "black", "brown", "cyan",
               "grey", "lime", "purple",
               "violet", "teal", "silver", "orange", "pink", "yellow"]
-    while count < len(traces):
-        step_list = []
-        parent_list = []
-        step_dict = {}
-        first_edge_node_count = 0
-        second_edge_node_count = 1
-        if bidir:
-            if direction == "forward":
-                trace = result.Forward_Traces[0][count]
-            else:
-                trace = result.Reverse_Traces[0][count]
-        else:
-            trace = result.Traces[0][count]
-
-        parser = ttp(data=str(trace), template=trace_template)
-        parser.parse()
-        parsed_results = parser.result(format='raw')[0][0]
-
-        # Node positioning
+    trace_count = 0
+    trace_tabs_children = []
+    node_list = []
+    nodes = {}
+    trace_edges = []
+    for x in traces:
+        trace = traces[trace_count]
+        hops = trace.dict()['hops']
+        count = 0
+        step_row_children = []
         x = 0
         y = 0
-        for node in parsed_results:
-            node = node["NODE"]
-
+        first_edge_node_count = 0
+        second_edge_node_count = 1
+        for hop in hops:
+            outside_toast_children = []
+            node = hop['node']
             if node not in nodes:
 
                 if node not in nodes:
@@ -362,56 +335,147 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
                         nodes[node] = [x, y]
             x += 1
 
-        max_value = max(all_x_values)
-
-        while second_edge_node_count < len(trace):
             pair = []
-            trace_number = 'Trace ' + str(count)
-            first_edge_node = parsed_results[first_edge_node_count]["NODE"]
-            second_edge_node = parsed_results[second_edge_node_count]["NODE"]
-            pair.append('trace_' + str(count))
-            pair.append(first_edge_node)
-            pair.append(second_edge_node)
-            trace_edges.append(tuple(pair))
+            if second_edge_node_count < len(trace):
+                first_edge_node = hops[first_edge_node_count]["node"]
+                second_edge_node = hops[second_edge_node_count]["node"]
+
+                pair.append('trace_' + str(trace_count))
+                pair.append(first_edge_node)
+                pair.append(second_edge_node)
+                trace_edges.append(tuple(pair))
             first_edge_node_count += 1
             second_edge_node_count += 1
-        top_sum = html.Summary(trace_number, style=dict(color=colors[0]))
-        for data in parsed_results:
-            contents = ""
-            for item in data.items():
-                contents = contents + item[0] + ': ' + item[1] + '\n'
-            step_dict['Step ' + str(data['STEP'])] = contents
-            steps = html.Details([html.Summary('Step ' + str(data['STEP']),
-                                               className="trace_steps"),
-                                  html.Div(dcc.Textarea(
-                                      value=contents,
-                                      readOnly=True,
-                                      style={'width': '200px', 'height': 120,
-                                             'margin-left': '5px'},
-                                  ))])
-            step_list.append(steps)
 
-        parent_list.append(top_sum)
-        for data in step_list:
-            parent_list.append(data)
-        top_tree = html.Div(id="trace-tree", children=[html.Details(parent_list)])
-        children.append(top_tree)
+            hop_steps = hop['steps']
+
+            outside_toast_id = "trace_{trace_count}_step_{step_count}".format(
+                trace_count=trace_count, step_count=count)
+            outside_toast_header = "Step: {step_count} Node: {node}".format(
+                step_count=count, node=node)
+
+            for step_detail in hop_steps:
+                step_detail_dict = step_detail['detail']
+                step_action = step_detail['action']
+                inside_toast_content = ""
+                inside_toast_header = step_action
+                inside_toast_content_html = None
+                inside_toast_id = "trace_{trace_count}_step_{step_count}_{step_action}".format(
+                    trace_count=trace_count, step_count=count,
+                    step_action=step_action)
+
+                for outside_key, outside_value in step_detail_dict.items():
+                    inside_toast_children = []
+                    inside_value_dict = ""
+
+                    if outside_key == "routes":
+                        for inside_key, inside_value in outside_value[0].items():
+                            inside_value_dict += "{key} : {value}\n".format(
+                                key=inside_key, value=inside_value)
+                        inside_toast_content_html = html.Details(
+                            [html.Summary(outside_key),
+                             html.Div(html.Pre(inside_value_dict))])
+
+                    elif outside_key == "flow":
+                        for inside_key, inside_value in outside_value.items():
+                            inside_value_dict += "{key} : {value}\n".format(
+                                key=inside_key, value=inside_value)
+                        inside_toast_content_html = html.Details(
+                            [html.Summary(outside_key),
+                             html.Div(html.Pre(inside_value_dict))])
+                    else:
+                        inside_toast_content += "{key} : {value}\n".format(
+                            key=outside_key, value=outside_value)
+
+                inside_toast_children.append(html.Pre(inside_toast_content))
+                inside_toast_children.append(inside_toast_content_html)
+                inside_toast = dbc.Toast(
+                    inside_toast_children,
+                    id=inside_toast_id,
+                    header=inside_toast_header,
+                    style={"min-width": "200px",
+                           "font-size": "12px"})
+
+                outside_toast_children.append(inside_toast)
+            count += 1
+
+            step_toast = dbc.Toast(
+                outside_toast_children,
+                is_open=True,
+                id={
+                    'type': 'Step_Toast',
+                    'index': outside_toast_id
+                },
+                header=outside_toast_header,
+                style={"min-width": "300px",
+                       "font-size": "15px"},
+
+            )
+
+            step_row_children.append(step_toast)
+        max_value = max(all_x_values)
+        step_row = html.Div(
+
+            dbc.Row(children=step_row_children,
+
+                    style={"display": "flex",
+                           "min-width": "100%",
+                           "min-height": "300px",
+                           "overflowX": "auto",
+                           "flex-wrap": "nowrap",
+                           'margin-bottom': '20px'}),
+            style={
+                'whiteSpace': 'nowrap',
+                'width': '1690px',
+                'height': 'auto',
+                'margin-left':"15px"
+
+
+            },
+        )
+
+        tab_style = {
+            'borderBottom': '1px solid #d6d6d6',
+            'padding': '6px',
+            'fontWeight': 'bold',
+            "color": colors[0],
+            "font-size":"18px"
+
+        }
+
+        tab_selected_style = {
+            'borderTop': '1px solid #d6d6d6',
+            'borderBottom': '1px solid #d6d6d6',
+            'backgroundColor': colors[0],
+            'color': 'white',
+            'padding': '6px',
+            "font-size":"18px"
+        }
+
+        trace_tab = dcc.Tab(className='trace-tab',
+                            label="Trace " + str(trace_count),
+                            children=step_row,
+                            style=tab_style,
+                            selected_style=tab_selected_style)
+
+        trace_tabs_children.append(trace_tab)
+
+
         trace_style = [{
-            'selector': 'edge.' + 'trace_' + str(count),
+            'selector': 'edge.' + 'trace_' + str(trace_count),
             'style': {
                 'target-arrow-color': colors[0],
                 'target-arrow-shape': 'triangle',
                 'line-color': colors[0]
             }
         }]
-        count += 1
+        trace_count += 1
         del colors[0]
         stylesheet = stylesheet + trace_style
 
     return [create_traceroute_graph(
         get_elements(nodes, trace_edges, max_value, node_list), stylesheet),
-        children]
-
+        trace_tabs_children]
 
 SNAPSHOT_DEVICE_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/configs"
 SNAPSHOT_HOST_CONFIG_UPLOAD_DIRECTORY = "assets/snapshot_holder/hosts"

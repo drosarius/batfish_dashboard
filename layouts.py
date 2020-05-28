@@ -252,7 +252,7 @@ main_page_layout = html.Div(id='main-page', children=[
             children=[
                 html.P(id='cytoscape-mouseoverNodeData-output'),
                 html.P(id='cytoscape-mouseoverEdgeData-output'),
-                html.P(id='batfish-host-output'),
+                html.P(id='batfish-host-output', style={"display":"none"}),
                 html.P(id='batfish-network-output', style={"display":"none"}),
                 html.P(id='num_of_traces', style={"display":"none"}),
             ]
