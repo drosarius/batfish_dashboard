@@ -94,8 +94,8 @@ def create_graph(elements):
             id='cytoscape',
 
             style={
-                'width': '1000px',
-                'height': '500px',
+                'width': '1500px',
+                'height': '700px',
             },
 
             elements=elements,
@@ -130,8 +130,8 @@ def create_graph(elements):
                         'text-outline-color': '#ffffff',
                         'background-image': 'assets/img/Router2.png',
                         'background-fit': 'cover',
-                        'width': 50,
-                        'height': 50,
+                        'width': 100,
+                        'height': 100,
                         'text-background-opacity': 1,
                         'text-background-color': '#ffffff',
                         'text-background-shape': 'roundrectangle',

@@ -54,6 +54,7 @@ def batfish_host_toggle_collapse(n, submit_button, is_open):
     return is_open
 
 
+
 @app.callback(
     Output("batfish-network-output", "children"),
     [Input("create-network-form", "value"),
@@ -86,10 +87,14 @@ def create_network_toggle_collapse(n, submit_button, is_open):
 
 @app.callback(
     Output("batfish-host-output", "children"),
-    [Input("batfish_host_input", "value")]
+    [Input("batfish_host_input", "value"),
+     Input("set_batfish_host_submit_button", "n_clicks")]
 )
-def set_batfish_host(value):
-    if not value:
+def set_batfish_host(value, n):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "set_batfish_host_submit_button":
         raise PreventUpdate
     return value
 
@@ -590,20 +595,20 @@ def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
     batfish.set_snapshot(snapshot_value)
     if graph_type == "layer3":
         batfish_df = batfish.get_layer3_edges()
-        batfish_df.to_csv('batfish_df.csv', index=False)
-        new_df = pd.read_csv('batfish_df.csv')
-        new_batfish_df = new_df[
-            new_df['Interface'].str.match('.*Vlan.*') == False]
+        # batfish_df.to_csv('batfish_df.csv', index=False)
+        # new_df = pd.read_csv('batfish_df.csv')
+        # new_batfish_df = new_df[
+        #     new_df['Interface'].str.match('.*Vlan.*') == False]
         return create_graph(
-            getnodes(new_batfish_df) + getedges(new_batfish_df))
+            getnodes(batfish_df) + getedges(batfish_df))
     if graph_type == "ospf":
         batfish_df = batfish.get_ospf_edges()
-        batfish_df.to_csv('batfish_df.csv', index=False)
-        new_df = pd.read_csv('batfish_df.csv')
-        new_batfish_df = new_df[
-            new_df['Interface'].str.match('.*Vlan.*') == False]
+        # batfish_df.to_csv('batfish_df.csv', index=False)
+        # new_df = pd.read_csv('batfish_df.csv')
+        # new_batfish_df = new_df[
+        #     new_df['Interface'].str.match('.*Vlan.*') == False]
         return create_graph(
-            getnodes(new_batfish_df) + getedges(new_batfish_df))
+            getnodes(batfish_df) + getedges(batfish_df))
     if graph_type == "bgp":
         batfish_df = batfish.get_bgp_edges()
         return create_graph(getparents(batfish_df) + get_bgp_nodes(
@@ -1004,22 +1009,35 @@ def get_chaos_form(n, graph_elements, batfish_host, batfish_network,
                 html.Fieldset(
                     id="traceroute_source_fieldset",
                     children=[
-                        html.Legend("Deactivate Node"),
+                        html.Legend("Choose Node"),
                         dbc.InputGroup(
                             [
                                 dbc.Select(
-                                    id="traceroute_deactivate_node",
+                                    id="traceroute_choose_node",
                                     options=nodes_dict,
                                     value=node,
                                 ),
-
                             ]),
-
                     ],
-
                 ),
             ],
+        ),
 
+
+
+        dbc.Col(
+            children=[
+                html.Fieldset(
+                    id="traceroute_source_fieldset",
+                    children=[
+                        html.Legend("Deactivate Node?"),
+                        daq.BooleanSwitch(
+                            id='deactivate_node_switch',
+                            on=False,
+                        ),
+                    ],
+                ),
+            ],
         ),
 
         dbc.Col(
@@ -1062,12 +1080,12 @@ def get_chaos_form(n, graph_elements, batfish_host, batfish_network,
 
 @app.callback(
     Output('traceroute_deactivate_interface', 'options'),
-    [Input('traceroute_deactivate_node', 'value')],
+    [Input('traceroute_choose_node', 'value')],
     [State("batfish_host_input", "value"),
      State("select-network-button", "value"),
      State("select-snapshot-button", "value")]
 )
-def display_interfaces_for_node(deactivated_node, batfish_host,
+def display_interfaces_for_node(choose_node, batfish_host,
                                 batfish_network, original_snapshot):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
@@ -1082,7 +1100,7 @@ def display_interfaces_for_node(deactivated_node, batfish_host,
     batfish_df = batfish.get_info("nodeProperties")
     batfish_df = batfish_df.set_index('Node')
 
-    interfaces = batfish_df.loc[deactivated_node].at['Interfaces']
+    interfaces = batfish_df.loc[choose_node].at['Interfaces']
 
     interfaces_dict = [{'label': '',
                         'value': ''}]
@@ -1102,7 +1120,8 @@ def display_interfaces_for_node(deactivated_node, batfish_host,
         Input("traceroute_src_interface", "value"),
         Input("traceroute_dst", "value"),
         Input("chaos_traceroute_submit", "n_clicks"),
-        Input('traceroute_deactivate_node', 'value'),
+        Input('traceroute_choose_node', 'value'),
+        Input('deactivate_node_switch', 'on'),
         Input('traceroute_deactivate_interface', 'value'),
         Input("traceroute_src_ports", "value"),
         Input("traceroute_dst_ports", "value"),
@@ -1117,7 +1136,8 @@ def display_interfaces_for_node(deactivated_node, batfish_host,
 def set_chaos_trace_graph(source,
                           destination,
                           submit,
-                          deactivated_node,
+                          choose_node,
+                          deactivate_node,
                           deactivated_interface,
                           src_ports,
                           dst_ports,
@@ -1142,8 +1162,9 @@ def set_chaos_trace_graph(source,
     batfish.set_network(network_value)
     reference_snapshot = snapshot_value + "_FAIL"
     bidir = False
-    deactivated_nodes.append(deactivated_node)
-    deactivated_interfaces.append(deactivated_interface)
+    deactivated_nodes.append(choose_node)
+    if not deactivate_node:
+        deactivated_interfaces.append(deactivated_interface)
     batfish.network_failure(snapshot_value, reference_snapshot,
                             deactivated_nodes, deactivated_interfaces)
     result = batfish.traceroute(source, destination, bidir, reference_snapshot,

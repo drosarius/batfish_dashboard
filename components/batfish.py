@@ -92,7 +92,7 @@ class Batfish():
                         deactivate_node,
                         deactivated_int,
                         overwrite=True):
-        if '' in deactivated_int:
+        if not deactivated_int:
             bf_fork_snapshot(base_snapshot,
                              reference_snapshot,
                              deactivate_nodes=deactivate_node,

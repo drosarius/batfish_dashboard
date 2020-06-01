@@ -356,3 +356,8 @@ fieldset > legend {
 #traceroute_chaos_switch {
   margin-left: 7px;
 }
+
+
+#question-info {
+  font-size: medium;
+}

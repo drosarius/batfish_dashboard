@@ -202,10 +202,10 @@ main_page_layout = html.Div(id='main-page', children=[
                     children=[
                         dcc.Tabs(id='graph-type-tabs', value='layer3',
                                  children=[
-                                     dcc.Tab(selected_style=main_page_graph_tab_selected, className='main-page-graph-tab', label='Layer 3', value='layer3'),
-                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='OSPF', value='ospf'),
-                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='BGP', value='bgp'),
-                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', label='Trace Route', value='traceroute'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected, className='main-page-graph-tab', id={'type': 'main_tabs','index': 0},label='Layer 3', value='layer3'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 1},label='OSPF', value='ospf'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 2},label='BGP', value='bgp'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 3}, label='Trace Route', value='traceroute'),
                                  ]),
                         html.Div(id="placeholder-for-graph", ),
                         html.Div(id="main-page-traceroute", )
