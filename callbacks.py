@@ -1171,7 +1171,6 @@ def set_chaos_trace_graph(source,
     batfish.set_network(network_value)
 
     bidir = False
-    print(change_configuration_switch)
     if change_configuration_switch:
         reference_snapshot = snapshot_value + "_CHANGED"
         batfish.init_snapshot(reference_snapshot)
@@ -1273,7 +1272,6 @@ def set_change_configuration(changed_configuration, changed_configuration_submit
 
     if button_id not in ["change_configuration_submit","chaos_traceroute_submit" ]:
         raise PreventUpdate
-    print(button_id)
     if button_id == "chaos_traceroute_submit":
         return False
 
