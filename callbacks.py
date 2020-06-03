@@ -1022,9 +1022,6 @@ def get_chaos_form(n, graph_elements, batfish_host, batfish_network,
                 ),
             ],
         ),
-
-
-
         dbc.Col(
             children=[
                 html.Fieldset(
@@ -1061,6 +1058,16 @@ def get_chaos_form(n, graph_elements, batfish_host, batfish_network,
                 ),
 
             ],
+
+        ),
+        dbc.Col(
+            children=[html.Div(
+                dbc.Button("Change Configuration?", id="chaos_traceroute_change_config_button")),
+            daq.BooleanSwitch(
+                id='change_configuration_switch',
+                on=False,
+                style={"display":"none"}
+            ),]
 
         ),
         dbc.Col(
@@ -1129,7 +1136,8 @@ def display_interfaces_for_node(choose_node, batfish_host,
         Input("traceroute_ip_protocols", "value"),
 
     ],
-    [State("batfish_host_input", "value"),
+    [State("change_configuration_switch", "on"),
+    State("batfish_host_input", "value"),
      State("select-network-button", "value"),
      State("select-snapshot-button", "value")],
 )
@@ -1143,6 +1151,7 @@ def set_chaos_trace_graph(source,
                           dst_ports,
                           applications,
                           ip_protocols,
+                          change_configuration_switch,
                           host_value,
                           network_value,
                           snapshot_value):
@@ -1151,7 +1160,7 @@ def set_chaos_trace_graph(source,
     deactivated_nodes = []
     deactivated_interfaces = []
 
-    if button_id != "chaos_traceroute_submit":
+    if button_id not in  ["chaos_traceroute_submit", "change_configuration_submit"]:
         raise PreventUpdate
 
     src_ports = src_ports.split(',') if src_ports else None
@@ -1160,19 +1169,27 @@ def set_chaos_trace_graph(source,
     ip_protocols = ip_protocols.split(',') if ip_protocols else None
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
-    reference_snapshot = snapshot_value + "_FAIL"
+
     bidir = False
-    deactivated_nodes.append(choose_node)
-    if not deactivate_node:
-        deactivated_interfaces.append(deactivated_interface)
-    batfish.network_failure(snapshot_value, reference_snapshot,
-                            deactivated_nodes, deactivated_interfaces)
+    print(change_configuration_switch)
+    if change_configuration_switch:
+        reference_snapshot = snapshot_value + "_CHANGED"
+        batfish.init_snapshot(reference_snapshot)
+    else:
+        reference_snapshot = snapshot_value + "_FAIL"
+        deactivated_nodes.append(choose_node)
+        if not deactivate_node:
+            deactivated_interfaces.append(deactivated_interface)
+        batfish.network_failure(snapshot_value, reference_snapshot,
+                                deactivated_nodes, deactivated_interfaces)
+
     result = batfish.traceroute(source, destination, bidir, reference_snapshot,
-                                src_ports, dst_ports, applications, ip_protocols
+                                    src_ports, dst_ports, applications, ip_protocols
                                 )
     chaos_flow_details = get_traceroute_details('forward', result, False, True)
     chaos_flow_graph = chaos_flow_details[0]
     chaos_flow_traces = chaos_flow_details[1]
+    delete_old_files()
 
     return chaos_flow_graph, chaos_flow_traces
 
@@ -1236,3 +1253,79 @@ def set_dst_type_input(src, dst):
     if src is None or dst is None:
         return True
     return False
+
+
+@app.callback(
+    Output('change_configuration_switch', 'on'),
+    [Input("change_configuration_textarea", "value"),
+     Input("change_configuration_submit", "n_clicks"),
+     Input("chaos_traceroute_submit", "n_clicks"),],
+    [State("traceroute_choose_node", "value"),
+     State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")
+     ],
+)
+def set_change_configuration(changed_configuration, changed_configuration_submit, chaos_traceroute_submit, choose_node, batfish_host,batfish_network, batfish_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+
+    if button_id not in ["change_configuration_submit","chaos_traceroute_submit" ]:
+        raise PreventUpdate
+    print(button_id)
+    if button_id == "chaos_traceroute_submit":
+        return False
+
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.set_snapshot(batfish_snapshot)
+
+    with open(r"assets\snapshot_holder\configs\\" + choose_node + ".txt", 'w') as f:
+        f.write(changed_configuration)
+
+    nodes_df = batfish.get_info('fileParseStatus')
+    for key, value in nodes_df.iterrows():
+        if choose_node.lower() not in value['Nodes']:
+            with open(
+                    r"assets\snapshot_holder\configs\\" + value['Nodes'][0] + ".txt",
+                    'w') as f:
+                f.write(batfish.get_configuration(value['File_Name'], batfish_snapshot))
+    return True
+
+
+
+@app.callback(
+    Output("change_configuration_textarea", "value"),
+    [Input("chaos_traceroute_change_config_button", "n_clicks")],
+    [State("traceroute_choose_node", "value"),
+     State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")
+     ],
+)
+def get_change_configuration(n, choose_node, batfish_host,batfish_network, batfish_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "chaos_traceroute_change_config_button":
+        raise PreventUpdate
+
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.set_snapshot(batfish_snapshot)
+    nodes_df = batfish.get_info('fileParseStatus')
+    for key, value in nodes_df.iterrows():
+        if choose_node.lower() in value['Nodes']:
+            return batfish.get_configuration(value['File_Name'], batfish_snapshot)
+
+
+
+
+@app.callback(Output('change_configuration_modal', 'is_open'),
+              [Input('chaos_traceroute_change_config_button', 'n_clicks')],
+              [State("change_configuration_modal", "is_open")], )
+def open_change_configuration_modal(n, is_open):
+    if n:
+        return not is_open
+    return is_open

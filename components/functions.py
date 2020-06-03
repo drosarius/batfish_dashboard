@@ -75,7 +75,7 @@ def getedges(batfish_df):
                     x_test[1] = re.sub("^GigabitEthernet", "Ge", x_test[1])
                     x_test[1] = re.sub("^port-channel", "po", x_test[1])
                     x_test[1] = re.sub("^Port-Channel", "po", x_test[1])
-                    x_test[1] = re.sub(r"([^-]+-\S{4})(.*)",r"\1", x_test[1])
+                    x_test[1] = re.sub(r"([^-]+-\S{4})(.*)",r"\1", x_test[1])  #shorten the AWS interface names
                     test += x_test
                 new_new_edges.append(test)
     new_new_edges = list(set(tuple(sub) for sub in new_new_edges))
@@ -83,21 +83,18 @@ def getedges(batfish_df):
         {'data': {'source': source, 'target': target,
                   'source_label': source_int, 'target_label': target_int}}
         for source, source_int, target, target_int in new_new_edges]
-
     return edges
 
 
 def create_graph(elements):
     children = [
         cyto.Cytoscape(
-
             id='cytoscape',
 
             style={
                 'width': '1500px',
                 'height': '700px',
             },
-
             elements=elements,
             stylesheet=[
                 {
@@ -108,8 +105,8 @@ def create_graph(elements):
                         'target-text-rotation': 'autorotate',
                         'source-label': 'data(source_label)',
                         'target-label': 'data(target_label)',
-                        'source-text-offset': '50',
-                        'target-text-offset': '50',
+                        'source-text-offset': '100',
+                        'target-text-offset': '100',
                         'text-background-opacity': 1,
                         'text-background-color': '#ffffff',
                         'text-background-shape': 'roundrectangle',
@@ -118,9 +115,7 @@ def create_graph(elements):
                         'text-border-width': '1px',
                         'text-border-color': 'darkgray',
                         'text-background-padding': '3px',
-                        'curve-style': 'bezier'
-
-
+                        'curve-style': 'haystack'
                     }
                 },
                 {
@@ -141,9 +136,6 @@ def create_graph(elements):
                         'text-border-color': 'darkgray',
                         'font-weight': 'bold',
                         'text-background-padding': '5px',
-
-
-
                     }
                 },
                 {
@@ -154,7 +146,6 @@ def create_graph(elements):
                         'border-color':'#555555',
                     }
                 },
-
             ],
             layout={'name': 'breadthfirst',
                     'padding': 60,
@@ -163,16 +154,13 @@ def create_graph(elements):
         ),
 
     ]
-
     return children
 
 
 def create_traceroute_graph(elements, stylesheet):
     children = [
         cyto.Cytoscape(
-
             id='traceroute-cytoscape',
-
             style={
                 'width': '1720px',
                 'height': '500px',
@@ -241,7 +229,6 @@ def get_flow_details(result_flow, direction):
 
 def get_traceroute_details(direction, result, bidir, chaos=False):
     """
-
     :param direction:
         The direction of the trace:
             String: "forward" or "reverse"
@@ -253,8 +240,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
     :return:
         Graph of the trace route and trace route details
     """
-
-
 
     if bidir:
         if direction == "forward":
@@ -324,6 +309,8 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
         for hop in hops:
             outside_toast_children = []
             node = hop['node']
+
+            # Node positioning
             if node not in nodes:
 
                 if node not in nodes:
@@ -336,6 +323,8 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             x += 1
 
             pair = []
+
+            # builds edges
             if second_edge_node_count < len(trace):
                 first_edge_node = hops[first_edge_node_count]["node"]
                 second_edge_node = hops[second_edge_node_count]["node"]
@@ -347,8 +336,9 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             first_edge_node_count += 1
             second_edge_node_count += 1
 
-            hop_steps = hop['steps']
 
+            # Gets details of each hop
+            hop_steps = hop['steps']
             outside_toast_id = "trace_{trace_count}_step_{step_count}".format(
                 trace_count=trace_count, step_count=count)
             outside_toast_header = "Step: {step_count} Node: {node}".format(
@@ -415,7 +405,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             step_row_children.append(step_toast)
         max_value = max(all_x_values)
         step_row = html.Div(
-
             dbc.Row(children=step_row_children,
 
                     style={"display": "flex",
@@ -433,7 +422,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
 
             },
         )
-
         tab_style = {
             'borderBottom': '1px solid #d6d6d6',
             'padding': '6px',
@@ -451,7 +439,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             'padding': '6px',
             "font-size":"18px"
         }
-
         trace_tab = dcc.Tab(className='trace-tab',
                             label="Trace " + str(trace_count),
                             children=step_row,
@@ -459,7 +446,6 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
                             selected_style=tab_selected_style)
 
         trace_tabs_children.append(trace_tab)
-
 
         trace_style = [{
             'selector': 'edge.' + 'trace_' + str(trace_count),

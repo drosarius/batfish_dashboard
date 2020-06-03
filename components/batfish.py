@@ -1,5 +1,6 @@
 import pandas as pd
 from pybatfish.client.commands import *
+from pybatfish.client.extended import bf_get_snapshot_input_object_text
 from pybatfish.question import *
 from pybatfish.question import bfq
 from pybatfish.datamodel import *
@@ -85,6 +86,9 @@ class Batfish():
                 .answer(snapshot=snapshot)\
                 .frame()
         return result
+
+    def get_configuration(self, file_name, snapshot):
+        return bf_get_snapshot_input_object_text(file_name, snapshot=snapshot)
 
     def network_failure(self,
                         base_snapshot,

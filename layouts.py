@@ -115,7 +115,7 @@ main_page_layout = html.Div(id='main-page', children=[
                 ),
                 html.Div([
                     html.Button(
-                        "Chaos Monkey",
+                        "Chaos Monkey #TODO",
                         id="chaos-monkey-button",
                         className="main_page_button",
                     ),
@@ -466,12 +466,35 @@ main_page_layout = html.Div(id='main-page', children=[
             ],
         ),
 
+# Change Configuration Modal
+        html.Div(
+            children=[
+                dbc.Modal(
+                    id="change_configuration_modal",
+                    size="xl",
+                    scrollable=True,
+                    children=[
+                        dbc.ModalHeader("Change Configuration!"),
+                        dbc.ModalBody(
+
+                            children=[
+                                html.Div([
+                                    dcc.Textarea(
+                                        id='change_configuration_textarea',
+                                        value='',
+                                        style={'width': '100%', 'height': '500px'},
+                                    ),
+                                ],
+                                ),
+                                html.Button('Submit', id='change_configuration_submit'),
+                            ],
+
+                        ),
+
+                    ]
+                )
+            ],
+        ),
+
     ]
                                )
-
-
-######################## 404 Page ########################
-noPage = html.Div([
-    # CC Header
-    html.P(["404 Page not found"])
-    ], className="no-page")
