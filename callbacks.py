@@ -1,20 +1,22 @@
 import json
 import time
-import dash_daq as daq
+
 import dash
-import dash_table
-import dash_html_components as html
-import pandas as pd
-import dash_core_components as dcc
-from dash.dependencies import Input, Output, State, MATCH, ALL
-from dash.exceptions import PreventUpdate
-from components.batfish import Batfish
-from components.functions import get_bgp_edges, get_bgp_nodes, getnodes, \
-    getparents, getedges, create_traceroute_graph, create_graph, save_file, \
-    delete_old_files, get_elements, get_flow_meta_data, \
-    get_traceroute_details
-from app import app
 import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_daq as daq
+import dash_html_components as html
+import dash_table
+import pandas as pd
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+
+from app import app
+from components.batfish import Batfish
+from components.functions import save_file, \
+    delete_old_files, get_traceroute_details, get_layer3_graph, get_ospf_graph, \
+    get_bgp_graph, \
+    get_traceroute_content, get_acl_content
 
 
 @app.callback(
@@ -565,216 +567,33 @@ def ask_a_question_modal_table(question, host_value, network_value,
     return children
 
 
-@app.callback(
-    Output("placeholder-for-graph", "children"),
-    [
-        Input("graph-type-tabs", "value"),
-    ],
-)
-def set_update_graph(value):
-    if not value:
-        raise PreventUpdate
-    return html.Div(id='graph-type-tabs-content')
-
 
 @app.callback(
-    Output("graph-type-tabs-content", "children"),
+    Output("main-page-tabs-content", "children"),
     [
-        Input("graph-type-tabs", "value"),
+        Input("main-page-tabs", "value"),
         Input("select-snapshot-button", "value")
     ],
     [State("batfish_host_input", "value"),
      State("select-network-button", "value")],
 )
-def set_update_graph(graph_type, snapshot_value, host_value, network_value, ):
+def set_update_tab_content(content_type, snapshot_value, host_value, network_value):
     if not snapshot_value:
         raise PreventUpdate
     time.sleep(.05)
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
     batfish.set_snapshot(snapshot_value)
-    if graph_type == "layer3":
-        batfish_df = batfish.get_layer3_edges()
-        # batfish_df.to_csv('batfish_df.csv', index=False)
-        # new_df = pd.read_csv('batfish_df.csv')
-        # new_batfish_df = new_df[
-        #     new_df['Interface'].str.match('.*Vlan.*') == False]
-        return create_graph(
-            getnodes(batfish_df) + getedges(batfish_df))
-    if graph_type == "ospf":
-        batfish_df = batfish.get_ospf_edges()
-        # batfish_df.to_csv('batfish_df.csv', index=False)
-        # new_df = pd.read_csv('batfish_df.csv')
-        # new_batfish_df = new_df[
-        #     new_df['Interface'].str.match('.*Vlan.*') == False]
-        return create_graph(
-            getnodes(batfish_df) + getedges(batfish_df))
-    if graph_type == "bgp":
-        batfish_df = batfish.get_bgp_edges()
-        return create_graph(getparents(batfish_df) + get_bgp_nodes(
-            batfish_df) + get_bgp_edges(batfish_df))
 
-    if graph_type == "traceroute":
-        batfish_df = batfish.get_layer3_edges()
-        options = [str(x) for x in batfish_df["Interface"]]
-        interfaces = [{'label': interface,
-                       'value': interface}
-                      for interface in options]
+    tab_content = {
+        'layer3': get_layer3_graph(batfish.get_layer3_edges()),
+        'ospf': get_ospf_graph(batfish.get_ospf_edges()),
+        'bgp': get_bgp_graph(batfish.get_bgp_edges()),
+        'traceroute': get_traceroute_content(batfish.get_layer3_edges()),
+        'all_things_acl': get_acl_content()
+    }
+    return tab_content.get(content_type)
 
-        return html.Div(
-
-            children=[
-
-                dbc.Card(
-                    dbc.CardBody(
-                        children=[
-                            dbc.Row(
-                                id="traceroute_src_dst_row",
-                                children=[
-                                    dbc.Col(
-
-                                        children=[
-                                            html.Fieldset(
-                                                id="traceroute_source_fieldset",
-                                                children=[
-                                                    html.Legend("Source"),
-                                                    dbc.InputGroup(
-                                                        [
-                                                            # dbc.InputGroupAddon("Source",
-                                                            #                     addon_type="prepend"),
-
-                                                            dcc.Dropdown(
-                                                                id="traceroute_src_interface",
-                                                                placeholder='Select Source',
-                                                                options=interfaces,
-
-                                                            )
-                                                        ]),
-
-                                                ],
-
-                                            ),
-                                        ],
-
-                                    ),
-                                    dbc.Col(
-                                        children=[
-                                            html.Fieldset(
-                                                id="traceroute_dst_fieldset",
-                                                children=[
-                                                    html.Legend("Destination"),
-                                                    dbc.InputGroup(
-                                                        [
-
-                                                            html.Div(
-                                                                id="traceroute_dst_type_dropdown_div",
-                                                                children=[
-                                                                    dcc.Dropdown(
-                                                                        id="traceroute_dst_type_dropdown",
-                                                                        options=[
-                                                                            {
-                                                                                'label': 'IP',
-                                                                                'value': 'IP'},
-                                                                            {
-                                                                                'label': 'Interface',
-                                                                                'value': 'Interface'}],
-                                                                        value="Interface",
-
-                                                                    )
-                                                                ],
-
-                                                            ),
-
-                                                            html.Div(
-                                                                id="traceroute_dst_input",
-                                                                children=[
-                                                                    dcc.Dropdown(
-                                                                        id="traceroute_dst",
-                                                                        placeholder='Select Destination',
-                                                                        options=interfaces,
-
-                                                                    )
-                                                                ],
-
-                                                            ),
-
-                                                        ]),
-
-                                                ],
-
-                                            ),
-                                        ],
-
-                                    ),
-                                    dbc.Col(
-                                        width=1,
-                                        children=[
-                                            html.Div(
-                                                className="bidir_switch",
-                                                children=[
-                                                    daq.BooleanSwitch(
-                                                        id='main_page_traceroute_bidir_switch',
-                                                        on=False,
-                                                        label="Bidir",
-                                                        labelPosition="left",
-                                                    ),
-                                                    daq.BooleanSwitch(
-                                                        id='traceroute_advanced_options_switch',
-                                                        on=False,
-                                                        label="Advanced?",
-                                                        labelPosition="left",
-                                                    ),
-                                                    daq.BooleanSwitch(
-                                                        id='traceroute_chaos_switch',
-                                                        on=False,
-                                                        label="Chaos?",
-                                                        labelPosition="left",
-                                                    ),
-                                                ]),
-                                        ],
-                                    ),
-
-                                    dbc.Col(
-                                        html.Div(
-                                            dbc.Button("Trace!",
-                                                       id="main_page_traceroute_submit",
-                                                       disabled=True)),
-                                    ),
-
-                                ]),
-                            dbc.Row(id="traceroute-advanced_options_row"),
-                            dbc.Row(id="traceroute-alter-node"),
-
-                        ],
-                    ),
-                ),
-                html.Fieldset(
-                    [html.Legend("Forward Trace Route"),
-                     html.Div(
-                         id="main_page_forward_traceroute_graph"),
-                     html.Div(
-                         style={"width":"1000px"},
-                         children= [dcc.Tabs(id="forward_traceroute_tabs")]
-                         ),
-
-                     ]),
-
-                html.Fieldset(
-                    [html.Legend("Reverse Trace Route"),
-                     html.Div(id="main_page_reverse_traceroute_graph"),
-                     html.Div(
-                         style={"width": "1000px"},
-                         children=[dcc.Tabs(id="reverse_traceroute_tabs")]
-                     ),
-
-                     ]),
-
-                html.Fieldset(
-                    id="chaos_traceroute_fieldset"),
-
-            ],
-
-        ),
 
 
 ############################ Trace Route ##############################
@@ -792,7 +611,7 @@ def get_advanced_options_form(advanced_option_sw):
     children = [
         html.Div(
             hidden=hidden,
-            children = [dbc.Form(
+            children=[dbc.Form(
                 [
                     dbc.Col(
                         children=[
@@ -1327,3 +1146,117 @@ def open_change_configuration_modal(n, is_open):
     if n:
         return not is_open
     return is_open
+
+
+
+
+########################### All things ACL ################################
+
+
+
+@app.callback(
+    Output("acl_choose_node", "options"),
+    [Input("acl_get_config_button", "n_clicks")],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")
+     ],
+)
+def get_acl_configuration_modal(n,batfish_host,batfish_network, batfish_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "acl_get_config_button":
+        raise PreventUpdate
+
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.set_snapshot(batfish_snapshot)
+    nodes_df = batfish.get_info('nodeProperties')
+    options = [{'label': node, 'value': node} for node in
+               nodes_df['Node']]
+    return options
+
+
+
+@app.callback(Output('acl_configuration_modal', 'is_open'),
+              [Input('acl_get_config_button', 'n_clicks')],
+              [State("acl_configuration_modal", "is_open")],)
+def open_acl_configuration_modal(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    Output("acl_configuration_textarea", "value"),
+    [Input("acl_choose_node", "value")],
+    [State("batfish_host_input", "value"),
+     State("select-network-button", "value"),
+     State("select-snapshot-button", "value")
+     ],
+)
+def get_change_configuration(choose_node, batfish_host,batfish_network, batfish_snapshot):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "acl_choose_node":
+        raise PreventUpdate
+
+    batfish = Batfish(batfish_host)
+    batfish.set_network(batfish_network)
+    batfish.set_snapshot(batfish_snapshot)
+    nodes_df = batfish.get_info('fileParseStatus')
+    for key, value in nodes_df.iterrows():
+        if choose_node.lower() in value['Nodes']:
+            return batfish.get_configuration(value['File_Name'], batfish_snapshot)
+
+@app.callback(Output('acl_result_table', 'children'),
+              [Input('acl_original_choose_platform', 'value'),
+               Input('acl_original_textarea', 'value'),
+               Input('acl_refractored_choose_platform', 'value'),
+               Input('acl_refractored_textarea', 'value'),
+               Input('acl_analyze_button', 'n_clicks')
+               ],
+              [State("batfish_host_input", "value"),
+               State("select-network-button", "value"),
+               State("select-snapshot-button", "value")], )
+def acl_table(original_platform,
+              original_acl,
+              refractored_platform,
+              refractored_acl,
+              submit,
+              host_value,
+              network_value,
+              snapshot_value):
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "acl_analyze_button":
+        raise PreventUpdate
+    batfish = Batfish(host_value)
+    batfish.set_network(network_value)
+    batfish.set_snapshot(snapshot_value)
+    compare_acl_df = batfish.compare_acls(original_acl, refractored_acl, original_platform, refractored_platform)
+    batfish.delete_snapshot("refractored")
+    batfish.delete_snapshot("original")
+    children = dash_table.DataTable(
+        id='table',
+        columns=[{"name": i, "id": i, "deletable": True} for i in
+                 compare_acl_df.columns],
+        data=compare_acl_df.to_dict('records'),
+        filter_action="native",
+        style_cell={'fontSize': 12, 'font-family': 'sans-serif'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+
+    )
+    return children

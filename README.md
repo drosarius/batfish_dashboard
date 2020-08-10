@@ -51,10 +51,12 @@ Enjoy!
 
 <img src="/assets/img/trace_routev2.PNG" width="1000" />
 
+### Refractor ACLs
+
+<img src="/assets/img/ACL_refractored.PNG" width="1000" />
 
 ## Roadmap
 
 * Chaos Monkey
 * Ask a Question advanced search
-* Dynamic configuration change for trace route
-* ACL diffs
+* ACL Tester

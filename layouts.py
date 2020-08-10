@@ -113,15 +113,6 @@ main_page_layout = html.Div(id='main-page', children=[
                 ],
                     className="main_page_button_div",
                 ),
-                html.Div([
-                    html.Button(
-                        "Chaos Monkey #TODO",
-                        id="chaos-monkey-button",
-                        className="main_page_button",
-                    ),
-                ],
-                    className="main_page_button_div",
-                ),
 
                 html.Div(
                     style=dict(
@@ -200,15 +191,15 @@ main_page_layout = html.Div(id='main-page', children=[
                                flex="1",
                                ),
                     children=[
-                        dcc.Tabs(id='graph-type-tabs', value='layer3',
+                        dcc.Tabs(id='main-page-tabs', value='layer3',
                                  children=[
                                      dcc.Tab(selected_style=main_page_graph_tab_selected, className='main-page-graph-tab', id={'type': 'main_tabs','index': 0},label='Layer 3', value='layer3'),
                                      dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 1},label='OSPF', value='ospf'),
                                      dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 2},label='BGP', value='bgp'),
                                      dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 3}, label='Trace Route', value='traceroute'),
+                                     dcc.Tab(selected_style=main_page_graph_tab_selected,className='main-page-graph-tab', id={'type': 'main_tabs','index': 4}, label='All Things ACL', value='all_things_acl'),
                                  ]),
-                        html.Div(id="placeholder-for-graph", ),
-                        html.Div(id="main-page-traceroute", )
+                        html.Div(id="main-page-tabs-content", ),
 
                     ]),
             ],
@@ -220,7 +211,7 @@ main_page_layout = html.Div(id='main-page', children=[
             style={
                 'position': 'relative',
                 'left': '10px',
-                'display': 'flex'},
+                'display': 'none'},
             children=[
                 html.Div(
                     dcc.Dropdown(
@@ -250,8 +241,8 @@ main_page_layout = html.Div(id='main-page', children=[
                 'position': 'relative',
                 'left': '10px'},
             children=[
-                html.P(id='cytoscape-mouseoverNodeData-output'),
-                html.P(id='cytoscape-mouseoverEdgeData-output'),
+                html.P(id='cytoscape-mouseoverNodeData-output', style={"display":"none"}),
+                html.P(id='cytoscape-mouseoverEdgeData-output', style={"display":"none"}),
                 html.P(id='batfish-host-output', style={"display":"none"}),
                 html.P(id='batfish-network-output', style={"display":"none"}),
                 html.P(id='num_of_traces', style={"display":"none"}),
@@ -487,6 +478,43 @@ main_page_layout = html.Div(id='main-page', children=[
                                 ],
                                 ),
                                 html.Button('Submit', id='change_configuration_submit'),
+                            ],
+
+                        ),
+
+                    ]
+                )
+            ],
+        ),
+
+# ACL Configuration Modal
+        html.Div(
+            children=[
+                dbc.Modal(
+                    id="acl_configuration_modal",
+                    size="xl",
+                    scrollable=True,
+                    children=[
+                        dbc.ModalHeader("Get Configuration!"),
+                        dbc.ModalBody(
+
+                            children=[
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Select(
+                                            id="acl_choose_node",
+                                            options='',
+                                            value='',
+                                        ),
+                                    ]),
+                                html.Div([
+                                    dcc.Textarea(
+                                        id='acl_configuration_textarea',
+                                        value='',
+                                        style={'width': '100%', 'height': '500px'},
+                                    ),
+                                ],
+                                ),
                             ],
 
                         ),

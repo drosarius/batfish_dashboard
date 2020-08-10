@@ -1,6 +1,7 @@
 import base64
 import os
 import re
+import dash_daq as daq
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -90,6 +91,7 @@ def create_graph(elements):
     children = [
         cyto.Cytoscape(
             id='cytoscape',
+            responsive=True,
 
             style={
                 'width': '1500px',
@@ -497,6 +499,283 @@ def delete_old_files():
     except Exception as error:
         print(error)
 
+
+
+def get_layer3_graph(batfish_df):
+    return create_graph(
+            getnodes(batfish_df) + getedges(batfish_df))
+
+def get_ospf_graph(batfish_df):
+    return create_graph(
+        getnodes(batfish_df) + getedges(batfish_df))
+
+def get_bgp_graph(batfish_df):
+    return create_graph(getparents(batfish_df) + get_bgp_nodes(
+        batfish_df) + get_bgp_edges(batfish_df))
+
+def get_traceroute_content(batfish_df):
+    options = [str(x) for x in batfish_df["Interface"]]
+    interfaces = [{'label': interface,
+                   'value': interface}
+                  for interface in options]
+
+    return html.Div(
+
+        children=[
+
+            dbc.Card(
+                dbc.CardBody(
+                    children=[
+                        dbc.Row(
+                            id="traceroute_src_dst_row",
+                            children=[
+                                dbc.Col(
+
+                                    children=[
+                                        html.Fieldset(
+                                            id="traceroute_source_fieldset",
+                                            children=[
+                                                html.Legend("Source"),
+                                                dbc.InputGroup(
+                                                    [
+                                                        dcc.Dropdown(
+                                                            id="traceroute_src_interface",
+                                                            placeholder='Select Source',
+                                                            options=interfaces,
+
+                                                        )
+                                                    ]),
+                                            ],
+
+                                        ),
+                                    ],
+                                ),
+                                dbc.Col(
+                                    children=[
+                                        html.Fieldset(
+                                            id="traceroute_dst_fieldset",
+                                            children=[
+                                                html.Legend("Destination"),
+                                                dbc.InputGroup(
+                                                    [
+
+                                                        html.Div(
+                                                            id="traceroute_dst_type_dropdown_div",
+                                                            children=[
+                                                                dcc.Dropdown(
+                                                                    id="traceroute_dst_type_dropdown",
+                                                                    options=[
+                                                                        {
+                                                                            'label': 'IP',
+                                                                            'value': 'IP'},
+                                                                        {
+                                                                            'label': 'Interface',
+                                                                            'value': 'Interface'}],
+                                                                    value="Interface",
+
+                                                                )
+                                                            ],
+
+                                                        ),
+
+                                                        html.Div(
+                                                            id="traceroute_dst_input",
+                                                            children=[
+                                                                dcc.Dropdown(
+                                                                    id="traceroute_dst",
+                                                                    placeholder='Select Destination',
+                                                                    options=interfaces,
+
+                                                                )
+                                                            ],
+
+                                                        ),
+
+                                                    ]),
+                                            ],
+
+                                        ),
+                                    ],
+
+                                ),
+                                dbc.Col(
+                                    width=1,
+                                    children=[
+                                        html.Div(
+                                            className="bidir_switch",
+                                            children=[
+                                                daq.BooleanSwitch(
+                                                    id='main_page_traceroute_bidir_switch',
+                                                    on=False,
+                                                    label="Bidir",
+                                                    labelPosition="left",
+                                                ),
+                                                daq.BooleanSwitch(
+                                                    id='traceroute_advanced_options_switch',
+                                                    on=False,
+                                                    label="Advanced?",
+                                                    labelPosition="left",
+                                                ),
+                                                daq.BooleanSwitch(
+                                                    id='traceroute_chaos_switch',
+                                                    on=False,
+                                                    label="Chaos?",
+                                                    labelPosition="left",
+                                                ),
+                                            ]),
+                                    ],
+                                ),
+
+                                dbc.Col(
+                                    html.Div(
+                                        dbc.Button("Trace!",
+                                                   id="main_page_traceroute_submit",
+                                                   disabled=True)),
+                                ),
+
+                            ]),
+                        dbc.Row(id="traceroute-advanced_options_row"),
+                        dbc.Row(id="traceroute-alter-node"),
+
+                    ],
+                ),
+            ),
+            html.Fieldset(
+                [html.Legend("Forward Trace Route"),
+                 html.Div(
+                     id="main_page_forward_traceroute_graph"),
+                 html.Div(
+                     style={"width": "1000px"},
+                     children=[dcc.Tabs(id="forward_traceroute_tabs")]
+                 ),
+
+                 ]),
+
+            html.Fieldset(
+                [html.Legend("Reverse Trace Route"),
+                 html.Div(id="main_page_reverse_traceroute_graph"),
+                 html.Div(
+                     style={"width": "1000px"},
+                     children=[dcc.Tabs(id="reverse_traceroute_tabs")]
+                 ),
+
+                 ]),
+
+            html.Fieldset(
+                id="chaos_traceroute_fieldset"),
+
+        ],
+
+    ),
+
+
+
+def get_acl_content():
+
+    options = [{'label': 'Cisco IOS', 'value': 'cisco'},
+               {'label': 'Cisco NX-OS', 'value': 'cisco-nx'},
+               {'label': 'Cisco XR', 'value': 'cisco-xr'},
+               {'label': 'Juniper', 'value': 'juniper'}]
+    return html.Div(
+        id="acl_content_container",
+        children=[
+            html.Div(
+                id="acl_content",
+                children=[
+                    html.Div(children=[
+                        html.Fieldset(
+                            id="acl_original_fieldset",
+                            children=[html.Legend("Original ACL"),
+                                      dbc.InputGroup(
+                                          id="acl_original_input_group",
+                                          children=[
+                                              html.Div([dbc.Button(
+                                                  "Get Configuration",
+                                                  id="acl_get_config_button")]),
+                                              html.Div(
+                                                  children=[
+                                                      dbc.InputGroup([
+                                                          dbc.InputGroupAddon(
+                                                              "Choose Platform",
+                                                              addon_type="prepend"),
+                                                          dbc.Select(
+                                                              id="acl_original_choose_platform",
+                                                              options=options,
+                                                              value='cisco',
+                                                          ),
+
+                                                      ]),
+                                                  ]),
+
+                                          ]),
+                                      html.Div(
+                                          id="acl_original_text_area_container",
+                                          children=[
+                                              dcc.Textarea(
+                                                  id='acl_original_textarea',
+                                                  value='',
+                                                  placeholder="Please Copy and Paste an ACL",
+                                                  required=True,
+                                              ),
+                                          ]),
+                                      ]),
+                    ]),
+
+                    html.Div([dbc.Button(
+                        "Analyze",
+                        id="acl_analyze_button")]),
+
+                    html.Div(children=[
+                        html.Fieldset(
+                            id="acl_refractored_fieldset",
+                            children=[html.Legend("Refractored ACL"),
+                                      html.Div(
+                                          id="acl_refractored_choose_platform_container",
+                                          children=[
+                                              dbc.InputGroup([
+                                                  dbc.InputGroupAddon(
+                                                      "Choose Platform",
+                                                      addon_type="prepend"),
+                                                  dbc.Select(
+                                                      id="acl_refractored_choose_platform",
+                                                      options=options,
+                                                      value='',
+                                                  ),
+
+                                              ]),
+
+                                          ]),
+
+                                      html.Div(
+                                          id="acl_refractored_text_area_container",
+                                          children=[
+                                              dcc.Textarea(
+                                                  id='acl_refractored_textarea',
+                                                  value='',
+                                                  placeholder="Please Copy and Paste an ACL",
+                                                  required=True,
+                                              ),
+                                          ]),
+                                      ]),
+                    ]),
+
+
+                ]
+            ),
+            html.Div(
+                id="acl_result_fieldset_container",
+                children=[
+                html.Fieldset(
+                    id="acl_result_fieldset",
+                    children=[html.Legend("Results"),
+                              html.Div(
+                                  id="acl_result_table",
+                              ),
+                              ]),
+            ]),
+
+        ]
+    )
 
 
 
