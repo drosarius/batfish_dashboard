@@ -1,6 +1,5 @@
 import json
 import time
-
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -10,14 +9,16 @@ import dash_table
 import pandas as pd
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-
 from app import app
 from components.batfish import Batfish
-from components.functions import save_file, \
-    delete_old_files, get_traceroute_details, get_layer3_graph, get_ospf_graph, \
-    get_bgp_graph, \
-    get_traceroute_content, get_acl_content
-
+from components.functions import save_file
+from components.functions import delete_old_files
+from components.functions import get_traceroute_details
+from components.functions import get_layer3_graph
+from components.functions import get_ospf_graph
+from components.functions import get_bgp_graph
+from components.functions import get_traceroute_content
+from components.functions import get_acl_content
 
 @app.callback(
     Output('cytoscape-mouseoverNodeData-output', 'children'),
@@ -132,7 +133,7 @@ def get_batfish_networks(n, value):
         raise PreventUpdate
     batfish = Batfish(value)
     options = [{'label': network, 'value': network} for network in
-               batfish.get_existing_networks()]
+               batfish.get_existing_networks]
     dropdown1 = dcc.Dropdown(
         id="select-network-button",
         placeholder='Select a Network',
@@ -586,10 +587,10 @@ def set_update_tab_content(content_type, snapshot_value, host_value, network_val
     batfish.set_snapshot(snapshot_value)
 
     tab_content = {
-        'layer3': get_layer3_graph(batfish.get_layer3_edges()),
-        'ospf': get_ospf_graph(batfish.get_ospf_edges()),
-        'bgp': get_bgp_graph(batfish.get_bgp_edges()),
-        'traceroute': get_traceroute_content(batfish.get_layer3_edges()),
+        'layer3': get_layer3_graph(batfish.get_layer3_edges),
+        'ospf': get_ospf_graph(batfish.get_ospf_edges),
+        'bgp': get_bgp_graph(batfish.get_bgp_edges),
+        'traceroute': get_traceroute_content(batfish.get_layer3_edges),
         'all_things_acl': get_acl_content()
     }
     return tab_content.get(content_type)
@@ -1038,7 +1039,7 @@ def set_dst_type_input(dst_type, host_value, network_value, snapshot_value):
     batfish.set_snapshot(snapshot_value)
 
     if dst_type == 'Interface':
-        batfish_df = batfish.get_layer3_edges()
+        batfish_df = batfish.get_layer3_edges
         options = [str(x) for x in batfish_df["Interface"]]
         interfaces = [{'label': interface,
                        'value': interface}

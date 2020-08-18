@@ -1,9 +1,17 @@
 import pandas as pd
-from pybatfish.client.commands import *
+from pybatfish.client.commands import bf_session
+from pybatfish.client.commands import bf_delete_network
+from pybatfish.client.commands import bf_delete_snapshot
+from pybatfish.client.commands import bf_set_snapshot
+from pybatfish.client.commands import bf_set_network
+from pybatfish.client.commands import bf_list_networks
+from pybatfish.client.commands import bf_list_snapshots
+from pybatfish.client.commands import bf_init_snapshot
+from pybatfish.client.commands import bf_fork_snapshot
 from pybatfish.client.extended import bf_get_snapshot_input_object_text
-from pybatfish.question import *
 from pybatfish.question import bfq
-from pybatfish.datamodel import *
+from pybatfish.question import load_questions
+from pybatfish.datamodel import HeaderConstraints, Interface
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -32,8 +40,24 @@ class Batfish():
     def set_network(self, network):
         bf_set_network(network)
 
+    @property
     def get_existing_networks(self):
         return bf_list_networks()
+
+    @property
+    def get_layer3_edges(self):
+        result = bfq.layer3Edges().answer().frame()
+        return result
+
+    @property
+    def get_ospf_edges(self):
+        result = bfq.ospfEdges().answer().frame()
+        return result
+
+    @property
+    def get_bgp_edges(self):
+        result = bfq.bgpEdges().answer().frame()
+        return result
 
     def get_existing_snapshots(self):
         try:
@@ -52,17 +76,7 @@ class Batfish():
         result = eval(execute)
         return result
 
-    def get_layer3_edges(self):
-        result = bfq.layer3Edges().answer().frame()
-        return result
 
-    def get_ospf_edges(self):
-        result = bfq.ospfEdges().answer().frame()
-        return result
-
-    def get_bgp_edges(self):
-        result = bfq.bgpEdges().answer().frame()
-        return result
 
     def traceroute(self, src, dstIps, bidir,snapshot,
                    srcPorts=None,
