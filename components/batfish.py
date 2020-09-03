@@ -50,6 +50,11 @@ class Batfish():
         return result
 
     @property
+    def get_interfaces(self):
+        result = bfq.ipOwners().answer().frame()
+        return result
+
+    @property
     def get_ospf_edges(self):
         result = bfq.ospfEdges().answer().frame()
         return result
@@ -95,6 +100,7 @@ class Batfish():
                 .answer(snapshot=snapshot)\
                 .frame()
         else:
+
             result = bfq.traceroute(startLocation=src,
                                     headers=headers)\
                 .answer(snapshot=snapshot)\

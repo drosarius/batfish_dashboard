@@ -355,18 +355,23 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
                 inside_toast_id = "trace_{trace_count}_step_{step_count}_{step_action}".format(
                     trace_count=trace_count, step_count=count,
                     step_action=step_action)
-
                 for outside_key, outside_value in step_detail_dict.items():
+
                     inside_toast_children = []
                     inside_value_dict = ""
 
                     if outside_key == "routes":
-                        for inside_key, inside_value in outside_value[0].items():
-                            inside_value_dict += "{key} : {value}\n".format(
-                                key=inside_key, value=inside_value)
-                        inside_toast_content_html = html.Details(
-                            [html.Summary(outside_key),
-                             html.Div(html.Pre(inside_value_dict))])
+                        if outside_value:
+                            for inside_key, inside_value in outside_value[0].items():
+                                inside_value_dict += "{key} : {value}\n".format(
+                                    key=inside_key, value=inside_value)
+                            inside_toast_content_html = html.Details(
+                                [html.Summary(outside_key),
+                                 html.Div(html.Pre(inside_value_dict))])
+                        else:
+                            inside_toast_content_html = html.Details(
+                                [html.Summary(outside_key),
+                                 html.Div(html.Pre("NO ROUTE"))])
 
                     elif outside_key == "flow":
                         for inside_key, inside_value in outside_value.items():
@@ -405,7 +410,11 @@ def get_traceroute_details(direction, result, bidir, chaos=False):
             )
 
             step_row_children.append(step_toast)
-        max_value = max(all_x_values)
+        try:
+
+            max_value = max(all_x_values)
+        except ValueError:
+            max_value = 0
         step_row = html.Div(
             dbc.Row(children=step_row_children,
 
@@ -500,7 +509,6 @@ def delete_old_files():
         print(error)
 
 
-
 def get_layer3_graph(batfish_df):
     return create_graph(
             getnodes(batfish_df) + getedges(batfish_df))
@@ -514,10 +522,9 @@ def get_bgp_graph(batfish_df):
         batfish_df) + get_bgp_edges(batfish_df))
 
 def get_traceroute_content(batfish_df):
-    options = [str(x) for x in batfish_df["Interface"]]
-    interfaces = [{'label': interface,
-                   'value': interface}
-                  for interface in options]
+    interfaces = [{'label': row['Node'] + '-' + row['Interface'] + '-' + row['IP'],
+                   'value': row['Node'] + "[" + row['Interface'] + "]"}
+                  for index,row in batfish_df.iterrows()]
 
     return html.Div(
 

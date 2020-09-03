@@ -578,7 +578,7 @@ def set_update_tab_content(content_type, snapshot_value, host_value, network_val
         'layer3': get_layer3_graph(batfish.get_layer3_edges),
         'ospf': get_ospf_graph(batfish.get_ospf_edges),
         'bgp': get_bgp_graph(batfish.get_bgp_edges),
-        'traceroute': get_traceroute_content(batfish.get_layer3_edges),
+        'traceroute': get_traceroute_content(batfish.get_interfaces),
         'all_things_acl': get_acl_content()
     }
     return tab_content.get(content_type)
@@ -731,6 +731,8 @@ def set_update_trace_graph(source,
 
     if button_id != "main_page_traceroute_submit":
         raise PreventUpdate
+
+
     src_ports = src_ports.split(',') if src_ports else None
     dst_ports = dst_ports.split(',') if dst_ports else None
     applications = applications.split(',') if applications else None
@@ -1027,11 +1029,10 @@ def set_dst_type_input(dst_type, host_value, network_value, snapshot_value):
     batfish.set_snapshot(snapshot_value)
 
     if dst_type == 'Interface':
-        batfish_df = batfish.get_layer3_edges
-        options = [str(x) for x in batfish_df["Interface"]]
-        interfaces = [{'label': interface,
-                       'value': interface}
-                      for interface in options]
+        batfish_df = batfish.get_interfaces
+        interfaces = [{'label': row['Node'] + '-' + row['Interface'] + '-' + row['IP'],
+                       'value': row['Node'] + "[" + row['Interface'] + "]"}
+                      for index, row in batfish_df.iterrows()]
 
         children = dcc.Dropdown(
             id="traceroute_dst",
