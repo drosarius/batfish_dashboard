@@ -478,46 +478,21 @@ def delete_snapshot_div(network_value, host_value):
 
 ################### Ask a Question ##################################
 
-batfish_questions = {"ipOwners":"For each device, lists the mapping from IPs to corresponding interface(s) and VRF(s).",
-"nodeProperties":"Lists global settings of devices in the network. Settings that are specific to interfaces, routing protocols, etc. are available via other questions.",
-"routes":"Shows routes for specified RIB, VRF, and node(s).",
-"layer3Edges":"Lists all Layer 3 edges in the network.",
-"interfaceProperties":"Lists interface-level settings of interfaces. Settings for routing protocols, VRFs, and zones etc. that are attached to interfaces are available via other questions.",
-"namedStructures":"Return structures defined in the configurations. i.e. routing polices, ACLs, other filters. Represented in a vendor-independent JSON format.",
-"definedStructures":"Lists the structures defined in the network, along with the files and line numbers in which they are defined.",
-"referencedStructures":"Lists the references in configuration files to vendor-specific structures, along with the line number, the name and the type of the structure referenced, and configuration context in which each reference occurs. i.e. Where ACLs, prefix-lists, etc. are applied",
-"unusedStructures":"Return nodes with structures such as ACLs, routes, etc. that are defined but not used. This may represent a bug in the configuration, which may have occurred because a final step in a template or MOP was not completed. Or it could be harmless extra configuration generated from a master template that is not meant to be used on those nodes.",
-"undefinedReferences":"Finds configurations that have references to named structures (e.g., ACLs) that are not defined. Such occurrences indicate errors and can have serious consequences in some cases.",
-"switchedVlanProperties":"Lists information about implicitly and explicitly configured switched VLANs.",
-"bgpProcessConfiguration":"Reports configuration settings for each BGP process on each node and VRF in the network. This question reports only process-wide settings. Peer-specific settings are reported by the bgpPeerConfiguration question.",
-"bgpPeerConfiguration":"Reports configuration settings for each configured BGP peering on each node in the network. This question reports peer-specific settings. Settings that are process-wide are reported by the bgpProcessConfiguration question.",
-"interfaceMtu":"Self-explanatory",
-"bgpSessionCompatibility":"Checks the settings of each configured BGP peering and reports any issue with those settings locally or incompatiblity with its remote counterparts.",
-"bgpSessionStatus":"Checks whether configured BGP peerings can be established.",
-"bgpEdges":"Lists all BGP adjacencies in the network.",
-"ospfInterfaceConfiguration":"Returns the interface level OSPF configuration details for the interfaces in the network which run OSPF.",
-"ospfProcessConfiguration":"Returns the values of important properties for all OSPF processes running across the network.",
-"ospfSessionCompatibility":"Returns compatible OSPF sessions in the network. A session is compatible if the interfaces involved are not shutdown and do run OSPF, are not OSPF passive and are associated with the same OSPF area.",
-"ospfEdges":"Lists all OSPF adjacencies in the network.",
-"ospfAreaConfiguration":"Returns information about all OSPF areas defined across the network.",
-"loopbackMultipathConsistency":"Finds flows between loopbacks that are treated differently (i.e., dropped versus forwarded) by different paths in the presence of multipath routing.",
-"filterLineReachability":"Finds all lines in the specified filters that will not match any packet, either because of being shadowed by prior lines or because of its match condition being empty.",
-"initIssues":"Reports issues encountered by Batfish, including failure to recognize certain lines in the configuration, lack of support for certain features, and errors when converting to vendor-independent models.",
-"fileParseStatus":"For each file in a snapshot, returns the host(s) that were produced by the file and the parse status: pass, fail, partially parsed.",
-"parseWarning":"Returns warnings that occurred when parsing the snapshot. Return warnings such as failure to recognize certain lines and lack of support for certain features.",
-"vxlanVniProperties":"Lists VNI-level network segment settings configured for VXLANs.",
-"vxlanEdges":"Lists all VXLAN edges in the network.",
-"evpnL3VniProperties":"Lists VNI-level network segment settings configured for VXLANs.",
-"detectLoops":"Searches across all possible flows in the network and returns example flows that will experience forwarding loops.",
-"ipsecSessionStatus":""}
 
 @app.callback(Output('question-info', 'children'),
-              [Input('select-question-button', 'value')])
-def question_descriptors(question):
+              [Input('select-question-button', 'value')],
+              [State("batfish_host_input", "value"),
+               State("select-network-button", "value"),
+               State("select-snapshot-button", "value")]
+              )
+def question_descriptors(question, host_value, network_value,
+                               snapshot_value):
     if not question:
         raise PreventUpdate
-
-    children = [html.P(batfish_questions[question])]
+    batfish = Batfish(host_value)
+    batfish.set_network(network_value)
+    batfish.set_snapshot(snapshot_value)
+    children = [html.P(batfish.get_question_description(question))]
     return children
 
 
@@ -529,6 +504,19 @@ def open_ask_a_question_modal(n, is_open):
         return not is_open
     return is_open
 
+@app.callback(Output('select-question-button', 'options'),
+              [Input('ask-question-button', 'n_clicks')],
+              [State("batfish_host_input", "value")], )
+def get_questions(n, host_value):
+
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id != "ask-question-button":
+        raise PreventUpdate
+    batfish = Batfish(host_value)
+    result = [ {'label': question['name'],'value': question['name']} for question in batfish.list_questions]
+    return result
 
 @app.callback(Output('ask-a-question-table', 'children'),
               [Input('select-question-button', 'value')],
@@ -581,7 +569,7 @@ def ask_a_question_modal_table(question, host_value, network_value,
 def set_update_tab_content(content_type, snapshot_value, host_value, network_value):
     if not snapshot_value:
         raise PreventUpdate
-    time.sleep(.05)
+    time.sleep(.10)
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
     batfish.set_snapshot(snapshot_value)

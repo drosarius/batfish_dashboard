@@ -4,39 +4,6 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 
 
-batfish_questions = ["ipOwners",
-                     "nodeProperties",
-                     "routes",
-                     "layer3Edges",
-                     "interfaceProperties",
-                     "namedStructures",
-                     "definedStructures",
-                     "referencedStructures",
-                     "unusedStructures",
-                     "undefinedReferences",
-                     "switchedVlanProperties",
-                     "bgpProcessConfiguration",
-                     "bgpPeerConfiguration",
-                     "bgpSessionCompatibility",
-                     "bgpSessionStatus",
-                     "bgpEdges",
-                     "ospfInterfaceConfiguration",
-                     "ospfProcessConfiguration",
-                     "ospfSessionCompatibility",
-                     "ospfEdges",
-                     "ospfAreaConfiguration",
-                     "loopbackMultipathConsistency",
-                     "filterLineReachability",
-                     "initIssues",
-                     "fileParseStatus",
-                     "parseWarning",
-                     "vxlanVniProperties",
-                     "vxlanEdges",
-                     "evpnL3VniProperties",
-                     "detectLoops",
-                     "ipsecSessionStatus"]
-
-
 main_page_graph_tab_selected = dict(
     padding='10px 20px',
     backgroundColor='#555555',
@@ -429,11 +396,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                         placeholder='Select Question',
                                         style={'margin': '5px',
                                                'width': '150px'},
-                                        options=[
-                                            {'label': question,
-                                             'value': question}
-                                            for question in batfish_questions
-                                        ],
+                                        options=[],
                                         value=None
 
                                     ),

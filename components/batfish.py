@@ -10,7 +10,7 @@ from pybatfish.client.commands import bf_init_snapshot
 from pybatfish.client.commands import bf_fork_snapshot
 from pybatfish.client.extended import bf_get_snapshot_input_object_text
 from pybatfish.question import bfq
-from pybatfish.question import load_questions
+from pybatfish.question import load_questions, list_questions
 from pybatfish.datamodel import HeaderConstraints, Interface
 
 pd.set_option('display.max_rows', None)
@@ -140,3 +140,13 @@ class Batfish():
             columns={'Line_Content': 'Refractored ACL Line', 'Reference_Line_Content': 'Original ACL Line'},
             inplace=True)
         return result
+
+
+    def get_question_description(self, question):
+        execute = 'bfq.' + question + '().get_long_description()'
+        result = eval(execute)
+        return result
+
+    @property
+    def list_questions(self):
+        return list_questions()
