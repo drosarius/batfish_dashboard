@@ -51,7 +51,7 @@ Enjoy!
 
 <img src="/assets/img/trace_routev2.PNG" width="1000" />
 
-### Refractor ACLs
+### Refactor ACLs
 
 <img src="/assets/img/ACL_refractored.PNG" width="1000" />
 

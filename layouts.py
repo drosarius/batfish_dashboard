@@ -102,6 +102,7 @@ main_page_layout = html.Div(id='main-page', children=[
                                                             id="batfish_host_input",
                                                             value="",
                                                             placeholder="Enter host",
+                                                            persistence=True,
                                                             ),
 
                                                     ],
