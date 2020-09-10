@@ -745,17 +745,17 @@ def get_acl_content():
 
                     html.Div(children=[
                         html.Fieldset(
-                            id="acl_refractored_fieldset",
-                            children=[html.Legend("Refractored ACL"),
+                            id="acl_refactored_fieldset",
+                            children=[html.Legend("Refactored ACL"),
                                       html.Div(
-                                          id="acl_refractored_choose_platform_container",
+                                          id="acl_refactored_choose_platform_container",
                                           children=[
                                               dbc.InputGroup([
                                                   dbc.InputGroupAddon(
                                                       "Choose Platform",
                                                       addon_type="prepend"),
                                                   dbc.Select(
-                                                      id="acl_refractored_choose_platform",
+                                                      id="acl_refactored_choose_platform",
                                                       options=options,
                                                       value='',
                                                   ),
@@ -765,10 +765,10 @@ def get_acl_content():
                                           ]),
 
                                       html.Div(
-                                          id="acl_refractored_text_area_container",
+                                          id="acl_refactored_text_area_container",
                                           children=[
                                               dcc.Textarea(
-                                                  id='acl_refractored_textarea',
+                                                  id='acl_refactored_textarea',
                                                   value='',
                                                   placeholder="Please Copy and Paste an ACL",
                                                   required=True,

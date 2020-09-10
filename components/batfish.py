@@ -132,18 +132,18 @@ class Batfish():
 
 
 
-    def compare_acls(self,orginal_acl, refractored_acl, original_paltform, refractored_platform):
+    def compare_acls(self,orginal_acl, refactored_acl, original_paltform, refactored_platform):
         original_snapshot = bf_session.init_snapshot_from_text(orginal_acl,
                                            platform=original_paltform,
                                            snapshot_name="original",
                                            overwrite=True)
-        refractored_snapshot = bf_session.init_snapshot_from_text(refractored_acl,
-                                           platform=refractored_platform,
-                                           snapshot_name="refractored",
+        refactored_snapshot = bf_session.init_snapshot_from_text(refactored_acl,
+                                           platform=refactored_platform,
+                                           snapshot_name="refactored",
                                            overwrite=True)
-        result = bfq.compareFilters().answer(snapshot=refractored_snapshot, reference_snapshot=original_snapshot).frame()
+        result = bfq.compareFilters().answer(snapshot=refactored_snapshot, reference_snapshot=original_snapshot).frame()
         result.rename(
-            columns={'Line_Content': 'Refractored ACL Line', 'Reference_Line_Content': 'Original ACL Line'},
+            columns={'Line_Content': 'Refactored ACL Line', 'Reference_Line_Content': 'Original ACL Line'},
             inplace=True)
         return result
 

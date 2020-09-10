@@ -1204,8 +1204,8 @@ def get_change_configuration(choose_node, batfish_host,batfish_network, batfish_
 @app.callback(Output('acl_result_table', 'children'),
               [Input('acl_original_choose_platform', 'value'),
                Input('acl_original_textarea', 'value'),
-               Input('acl_refractored_choose_platform', 'value'),
-               Input('acl_refractored_textarea', 'value'),
+               Input('acl_refactored_choose_platform', 'value'),
+               Input('acl_refactored_textarea', 'value'),
                Input('acl_analyze_button', 'n_clicks')
                ],
               [State("batfish_host_input", "value"),
@@ -1213,8 +1213,8 @@ def get_change_configuration(choose_node, batfish_host,batfish_network, batfish_
                State("select-snapshot-button", "value")], )
 def acl_table(original_platform,
               original_acl,
-              refractored_platform,
-              refractored_acl,
+              refactored_platform,
+              refactored_acl,
               submit,
               host_value,
               network_value,
@@ -1227,8 +1227,8 @@ def acl_table(original_platform,
     batfish = Batfish(host_value)
     batfish.set_network(network_value)
     batfish.set_snapshot(snapshot_value)
-    compare_acl_df = batfish.compare_acls(original_acl, refractored_acl, original_platform, refractored_platform)
-    batfish.delete_snapshot("refractored")
+    compare_acl_df = batfish.compare_acls(original_acl, refactored_acl, original_platform, refactored_platform)
+    batfish.delete_snapshot("refactored")
     batfish.delete_snapshot("original")
     children = dash_table.DataTable(
         id='table',
