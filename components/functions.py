@@ -494,8 +494,19 @@ def save_file(config_type, name, content):
     elif config_type == 'misc_config':
         directory = SNAPSHOT_MISC_CONFIG_UPLOAD_DIRECTORY
 
+    try:
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+    except OSError:
+        print(f"Failed to make directory {directory}")
+    else:
+        print(f"Successfully created directory {directory}")
+
     with open(os.path.join(directory, name), "wb") as fp:
         fp.write(base64.decodebytes(data))
+
+
+
 
 
 def delete_old_files():
