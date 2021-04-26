@@ -23,7 +23,7 @@ future==0.18.2
 idna==2.9
 ipaddress==1.0.23
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.9.5
 MarkupSafe==1.1.1
 netconan==0.11.1
